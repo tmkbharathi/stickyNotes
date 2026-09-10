@@ -1,0 +1,110 @@
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Windows.Input;
+using StickyNotes.Core.Models.Update;
+using StickyNotes.Core.Services.Persistence;
+using StickyNotes.Core.Services.Update;
+
+namespace StickyNotes.ViewModels;
+
+/// <summary>
+/// ViewModel for Settings View, binding Update channel, auto-update switches,
+/// last checked timestamp, release notes, and diagnostics.
+/// </summary>
+public sealed class SettingsViewModel : INotifyPropertyChanged
+{
+    private readonly ISettingsService _settingsService;
+    private readonly IUpdateService _updateService;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public SettingsViewModel(ISettingsService settingsService, IUpdateService updateService)
+    {
+        _settingsService = settingsService;
+        _updateService = updateService;
+
+        _updateService.StateChanged += (_, _) => OnPropertyChanged(nameof(StatusText));
+        CheckForUpdatesCommand = new AsyncRelayCommand(async () => await _updateService.CheckForUpdatesAsync(force: true));
+    }
+
+    public string CurrentVersion => _updateService.GetCurrentVersion().ToString();
+    public string StatusText => _updateService.CurrentState switch
+    {
+        UpdateState.UpToDate => "You're up to date",
+        UpdateState.Checking => "Checking for updates...",
+        UpdateState.UpdateAvailable => $"Version {_updateService.GetAvailableVersion()} is available",
+        UpdateState.Downloading => $"Downloading... {_updateService.DownloadProgress:F0}%",
+        UpdateState.RestartRequired => "Restart required",
+        UpdateState.Failed => "Update check failed",
+        _ => "Up to date"
+    };
+
+    public string LastCheckedText
+    {
+        get
+        {
+            var last = _settingsService.GetUpdateSettings().LastCheckTimestamp;
+            return last.HasValue ? last.Value.ToLocalTime().ToString("MMM dd, yyyy h:mm tt") : "Never";
+        }
+    }
+
+    public bool AutoCheckUpdates
+    {
+        get => _settingsService.GetUpdateSettings().AutoCheckUpdates;
+        set
+        {
+            var s = _settingsService.GetUpdateSettings();
+            s.AutoCheckUpdates = value;
+            _ = _settingsService.SaveUpdateSettingsAsync(s);
+            OnPropertyChanged();
+        }
+    }
+
+    public bool AutoDownloadUpdates
+    {
+        get => _settingsService.GetUpdateSettings().AutoDownloadUpdates;
+        set
+        {
+            var s = _settingsService.GetUpdateSettings();
+            s.AutoDownloadUpdates = value;
+            _ = _settingsService.SaveUpdateSettingsAsync(s);
+            OnPropertyChanged();
+        }
+    }
+
+    public bool AutoInstallWhenSafe
+    {
+        get => _settingsService.GetUpdateSettings().AutoInstallWhenSafe;
+        set
+        {
+            var s = _settingsService.GetUpdateSettings();
+            s.AutoInstallWhenSafe = value;
+            _ = _settingsService.SaveUpdateSettingsAsync(s);
+            OnPropertyChanged();
+        }
+    }
+
+    public UpdateChannel Channel
+    {
+        get => _settingsService.GetUpdateSettings().Channel;
+        set
+        {
+            _ = _settingsService.SetUpdateChannelAsync(value);
+            OnPropertyChanged();
+        }
+    }
+
+    public IReadOnlyList<UpdateChannel> AvailableChannels { get; } = new[]
+    {
+        UpdateChannel.Stable,
+        UpdateChannel.Beta,
+        UpdateChannel.Development
+    };
+
+    public ICommand CheckForUpdatesCommand { get; }
+}

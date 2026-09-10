@@ -1,0 +1,57 @@
+<ContentDialog
+    x:Class="StickyNotes.Views.Dialogs.UpdateAvailableDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Update available"
+    PrimaryButtonText="Update now"
+    SecondaryButtonText="Later"
+    DefaultButton="Primary"
+    PrimaryButtonClick="OnPrimaryButtonClick"
+    SecondaryButtonClick="OnSecondaryButtonClick">
+
+    <StackPanel Spacing="12" Width="420">
+        <!-- Versions Information Header -->
+        <TextBlock
+            Text="{x:Bind VersionSummaryText, Mode=OneWay}"
+            Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+        <TextBlock
+            Text="A new version of Sticky Notes is ready to be installed. Your notes and window layouts will be preserved automatically."
+            Style="{StaticResource CaptionTextBlockStyle}"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            TextWrapping="Wrap" />
+
+        <!-- Release Notes Section -->
+        <Border
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="8"
+            Padding="12"
+            MaxHeight="180">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="What's New:" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="SemiBold" />
+                    <TextBlock
+                        Text="{x:Bind ReleaseNotesText, Mode=OneWay}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        TextWrapping="Wrap"
+                        FontFamily="Segoe UI Variable" />
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Progress Indicator -->
+        <StackPanel Spacing="4" Visibility="{x:Bind IsProgressVisible, Mode=OneWay}">
+            <Grid>
+                <TextBlock Text="Downloading package..." Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Left" />
+                <TextBlock Text="{x:Bind ProgressText, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right" />
+            </Grid>
+            <ProgressBar Value="{x:Bind ProgressValue, Mode=OneWay}" Maximum="100" Height="4" />
+        </StackPanel>
+    </StackPanel>
+</ContentDialog>

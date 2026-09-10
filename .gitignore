@@ -1,0 +1,40 @@
+## Visual Studio / .NET / C#
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+## Windows App SDK & MSIX
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+*.msix
+*.appx
+*.appxbundle
+*.msixbundle
+*.cer
+*.pfx
+
+## Testing & Coverage
+TestResults/
+[Tt]est[Rr]esult*/
+
+## OS / Editor generated
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+*.swp
+*~
+
+## Local Settings / Temp
+*.tmp
+*.temp
+storage/
+stickynotes.backup.json

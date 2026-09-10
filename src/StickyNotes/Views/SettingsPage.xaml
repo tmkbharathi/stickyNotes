@@ -1,0 +1,88 @@
+<Page
+    x:Class="StickyNotes.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:StickyNotes.Core.Models.Update"
+    mc:Ignorable="d">
+
+    <ScrollViewer Padding="24" MaxWidth="800" HorizontalAlignment="Left">
+        <StackPanel Spacing="24">
+            <!-- Header -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}" />
+                <TextBlock Text="Manage note preferences, sync, and application updates."
+                           Style="{StaticResource BodyTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+
+            <!-- Updates Section Card -->
+            <StackPanel Spacing="16">
+                <TextBlock Text="Updates" Style="{StaticResource SubtitleTextBlockStyle}" />
+
+                <Border
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16">
+                    <StackPanel Spacing="16">
+                        <!-- Current Version & Status Row -->
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Sticky Notes" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Text="{x:Bind ViewModel.CurrentVersion, Mode=OneWay, Converter={StaticResource StringFormatConverter}, ConverterParameter='Version {0}'}"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                <TextBlock Text="{x:Bind ViewModel.LastCheckedText, Mode=OneWay, Converter={StaticResource StringFormatConverter}, ConverterParameter='Last checked: {0}'}"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            </StackPanel>
+
+                            <Button
+                                Grid.Column="1"
+                                Content="Check for updates"
+                                Style="{StaticResource AccentButtonStyle}"
+                                VerticalAlignment="Center"
+                                Command="{x:Bind ViewModel.CheckForUpdatesCommand}" />
+                        </Grid>
+
+                        <MenuFlyoutSeparator />
+
+                        <!-- Toggles -->
+                        <ToggleSwitch
+                            Header="Automatically check for updates"
+                            IsOn="{x:Bind ViewModel.AutoCheckUpdates, Mode=TwoWay}" />
+
+                        <ToggleSwitch
+                            Header="Download updates automatically"
+                            IsOn="{x:Bind ViewModel.AutoDownloadUpdates, Mode=TwoWay}" />
+
+                        <ToggleSwitch
+                            Header="Install updates automatically when safe"
+                            IsOn="{x:Bind ViewModel.AutoInstallWhenSafe, Mode=TwoWay}" />
+
+                        <MenuFlyoutSeparator />
+
+                        <!-- Update Channel Selector -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Update Channel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock Text="Select between verified production releases or early preview builds."
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <ComboBox
+                                Margin="0,4,0,0"
+                                Width="200"
+                                ItemsSource="{x:Bind ViewModel.AvailableChannels}"
+                                SelectedItem="{x:Bind ViewModel.Channel, Mode=TwoWay}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Page>
