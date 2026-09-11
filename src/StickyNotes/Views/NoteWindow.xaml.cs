@@ -19,7 +19,9 @@ public sealed partial class NoteWindow : Window
     private OverlappedPresenter? _presenter;
     private AppWindow? _appWindow;
 
-    public NoteModel Note { get; }
+    public NoteModel Note { get; private set; }
+
+    public bool IsVisibleOnScreen => _appWindow?.IsVisible ?? false;
 
     public NoteWindow(
         NoteModel note,
@@ -39,7 +41,7 @@ public sealed partial class NoteWindow : Window
         FloatingView.Note = Note;
         FloatingView.PinToggleRequested += (s, e) => OnTogglePin();
         FloatingView.MinimizeRequested += (s, e) => _presenter?.Minimize();
-        FloatingView.CloseRequested += (s, e) => this.Close();
+        FloatingView.CloseRequested += (s, e) => HideToTray();
         FloatingView.HeaderDragRequested += (s, e) => OnHeaderDrag();
 
         ConfigureAppWindow();
@@ -51,6 +53,12 @@ public sealed partial class NoteWindow : Window
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern bool ReleaseCapture();
 
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
     private void ConfigureAppWindow()
     {
         var savedGeo = _geometryService?.GetFloatingWindowGeometry();
@@ -60,12 +68,14 @@ public sealed partial class NoteWindow : Window
             savedGeo!,
             (x, y, w, h, isMax) =>
             {
-                _geometryService?.SaveFloatingWindowGeometry(x, y, w, h, isMax);
+                _geometryService?.SaveFloatingWindowGeometry(x, y, w, h, isMax, isVisible: IsVisibleOnScreen, activeNoteId: Note.Id);
             },
             defaultWidth: 340,
             defaultHeight: 480,
-            minWidth: 240,
-            minHeight: 180);
+            minWidth: 260,
+            minHeight: 220);
+
+        WindowMinSizeHelper.SetMinSize(this, minWidthDip: 260, minHeightDip: 220);
 
         if (_appWindow != null)
         {
@@ -76,6 +86,44 @@ public sealed partial class NoteWindow : Window
                 _presenter.SetBorderAndTitleBar(hasBorder: true, hasTitleBar: false);
                 _presenter.IsResizable = true;
             }
+
+            // Intercept close button on appWindow
+            _appWindow.Closing += (s, e) =>
+            {
+                e.Cancel = true;
+                HideToTray();
+            };
+        }
+    }
+
+    public void ShowAndFocus()
+    {
+        if (_appWindow != null)
+        {
+            _appWindow.Show();
+            _appWindow.MoveInZOrderAtTop();
+        }
+
+        var hWnd = WindowNative.GetWindowHandle(this);
+        ShowWindow(hWnd, 9 /* SW_RESTORE */);
+        SetForegroundWindow(hWnd);
+
+        _geometryService?.SetFloatingWindowVisibility(true, Note.Id);
+    }
+
+    public void HideToTray()
+    {
+        _appWindow?.Hide();
+        _geometryService?.SetFloatingWindowVisibility(false, Note.Id);
+    }
+
+    public void UpdateNote(NoteModel note)
+    {
+        Note = note;
+        FloatingView.Note = note;
+        if (IsVisibleOnScreen)
+        {
+            _geometryService?.SetFloatingWindowVisibility(true, note.Id);
         }
     }
 

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace StickyNotes.Core.Models;
 
 /// <summary>
-/// Persisted window bounds and state for desktop windows (MainWindow, FloatingWindow).
+/// Persisted window bounds and visibility state for desktop windows (MainWindow, FloatingWindow).
 /// </summary>
 public sealed class WindowGeometryModel
 {
@@ -22,18 +22,27 @@ public sealed class WindowGeometryModel
     [JsonPropertyName("isMaximized")]
     public bool IsMaximized { get; set; } = false;
 
+    [JsonPropertyName("isVisible")]
+    public bool IsVisible { get; set; } = false;
+
+    [JsonPropertyName("activeNoteId")]
+    public string? ActiveNoteId { get; set; }
+
     [JsonIgnore]
     public bool HasValue => Width > 0 && Height > 0 && X != int.MinValue && Y != int.MinValue;
 }
 
 /// <summary>
-/// Root container holding independent window geometries.
+/// Root container holding independent window geometries and visibility states.
 /// </summary>
 public sealed class AppWindowGeometries
 {
+    [JsonPropertyName("isFirstRun")]
+    public bool IsFirstRun { get; set; } = true;
+
     [JsonPropertyName("mainWindow")]
-    public WindowGeometryModel MainWindow { get; set; } = new();
+    public WindowGeometryModel MainWindow { get; set; } = new() { IsVisible = true };
 
     [JsonPropertyName("floatingWindow")]
-    public WindowGeometryModel FloatingWindow { get; set; } = new();
+    public WindowGeometryModel FloatingWindow { get; set; } = new() { IsVisible = false };
 }

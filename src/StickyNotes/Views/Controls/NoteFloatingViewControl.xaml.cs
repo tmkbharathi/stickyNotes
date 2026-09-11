@@ -1,7 +1,7 @@
+using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using StickyNotes.Core.Models.Note;
-using Windows.ApplicationModel.DataTransfer;
 
 namespace StickyNotes.Views.Controls;
 
@@ -46,34 +46,6 @@ public sealed partial class NoteFloatingViewControl : UserControl
     private void OnTogglePinClick(object sender, RoutedEventArgs e)
     {
         PinToggleRequested?.Invoke(this, EventArgs.Empty);
-    }
-
-    private void OnCopyAllClick(object sender, RoutedEventArgs e)
-    {
-        if (Note == null) return;
-
-        var text = $"{Note.DisplayTitle}\n\n{Note.Content}";
-        if (Note.Snippets.Count > 0)
-        {
-            text += "\n\n" + string.Join("\n\n", Note.Snippets.Select(s => s.Content));
-        }
-
-        var dataPackage = new DataPackage();
-        dataPackage.SetText(text);
-        Clipboard.SetContent(dataPackage);
-
-        CopyFeedbackText.Text = "✓ Copied";
-        CopyFeedbackText.Visibility = Visibility.Visible;
-        CopyIcon.Glyph = "\uE73E"; // Checkmark
-
-        Task.Delay(1500).ContinueWith(_ =>
-        {
-            App.CurrentAppSynchronizationContext?.Post(__ =>
-            {
-                CopyFeedbackText.Visibility = Visibility.Collapsed;
-                CopyIcon.Glyph = "\uE8C8"; // Copy icon
-            }, null);
-        });
     }
 
     private void OnMinimizeClick(object sender, RoutedEventArgs e)

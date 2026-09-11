@@ -194,79 +194,57 @@
                                 BorderThickness="1"
                                 CornerRadius="5"
                                 Padding="8,6">
-                                <StackPanel Spacing="4">
-                                    <!-- Top Row: Type, Label, Copy & Delete -->
-                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                                        <!-- Type Badge -->
-                                        <Border
-                                            Grid.Column="0"
-                                            Background="#2560CDFF"
-                                            BorderBrush="#4060CDFF"
-                                            BorderThickness="1"
-                                            CornerRadius="3"
-                                            Padding="5,1"
-                                            Margin="0,0,6,0">
-                                            <TextBlock Text="{x:Bind Type, Mode=OneWay}" FontSize="9.5" FontWeight="Bold" Foreground="#60CDFF" />
-                                        </Border>
+                                <Grid ColumnDefinitions="*,Auto,Auto">
+                                    <!-- Editable Monospace Code / Command Text Area -->
+                                    <TextBox
+                                        Grid.Column="0"
+                                        Text="{x:Bind Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        PlaceholderText="Enter command or snippet..."
+                                        FontFamily="{StaticResource CodeFontFamily}"
+                                        FontSize="11"
+                                        Foreground="#FFFAE0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="0"
+                                        AcceptsReturn="True"
+                                        TextWrapping="Wrap"
+                                        TextChanged="OnContentChanged"
+                                        VerticalAlignment="Center" />
 
-                                        <!-- Label -->
-                                        <TextBlock
-                                            Grid.Column="1"
-                                            Text="{x:Bind Label, Mode=OneWay}"
-                                            FontSize="10.5"
-                                            FontWeight="SemiBold"
-                                            Foreground="#BBBBBB"
-                                            VerticalAlignment="Center"
-                                            TextTrimming="CharacterEllipsis" />
-
-                                        <!-- 1-Click Copy Button -->
-                                        <Button
-                                            Grid.Column="2"
-                                            Click="OnSnippetCopyClick"
-                                            Tag="{x:Bind Content, Mode=OneWay}"
-                                            Height="22"
-                                            Padding="6,0"
-                                            Margin="4,0,2,0"
-                                            Background="#20FFFFFF"
-                                            BorderThickness="0"
-                                            CornerRadius="3">
-                                            <StackPanel Orientation="Horizontal" Spacing="3">
-                                                <FontIcon Glyph="&#xE8C8;" FontSize="9" />
-                                                <TextBlock Text="Copy" FontSize="9.5" />
-                                            </StackPanel>
-                                        </Button>
-
-                                        <!-- Remove Snippet Button (only in edit mode) -->
-                                        <Button
-                                            Grid.Column="3"
-                                            Click="OnSnippetRemoveClick"
-                                            Tag="{x:Bind}"
-                                            Width="22"
-                                            Height="22"
-                                            Padding="0"
-                                            Background="Transparent"
-                                            BorderThickness="0"
-                                            ToolTipService.ToolTip="Remove block">
-                                            <FontIcon Glyph="&#xE711;" FontSize="9" Foreground="#FF8888" />
-                                        </Button>
-                                    </Grid>
-
-                                    <!-- Monospace Code / Command Snippet Content -->
-                                    <Border
-                                        Background="#12000000"
-                                        BorderBrush="#10FFFFFF"
-                                        BorderThickness="1"
+                                    <!-- 1-Click Copy Button -->
+                                    <Button
+                                        Grid.Column="1"
+                                        Click="OnSnippetCopyClick"
+                                        Tag="{x:Bind Content, Mode=OneWay}"
+                                        Height="22"
+                                        Padding="6,0"
+                                        Margin="6,0,2,0"
+                                        Background="#20FFFFFF"
+                                        BorderThickness="0"
                                         CornerRadius="3"
-                                        Padding="6,4">
-                                        <TextBlock
-                                            Text="{x:Bind Content, Mode=OneWay}"
-                                            FontFamily="{StaticResource CodeFontFamily}"
-                                            FontSize="11"
-                                            Foreground="#FFFAE0"
-                                            TextWrapping="Wrap"
-                                            IsTextSelectionEnabled="True" />
-                                    </Border>
-                                </StackPanel>
+                                        VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="Copy snippet">
+                                        <StackPanel Orientation="Horizontal" Spacing="3">
+                                            <FontIcon Glyph="&#xE8C8;" FontSize="9" />
+                                            <TextBlock Text="Copy" FontSize="9.5" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!-- Remove Snippet Button (only in edit mode) -->
+                                    <Button
+                                        Grid.Column="2"
+                                        Click="OnSnippetRemoveClick"
+                                        Tag="{x:Bind}"
+                                        Width="22"
+                                        Height="22"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="Remove block">
+                                        <FontIcon Glyph="&#xE711;" FontSize="9" Foreground="#FF8888" />
+                                    </Button>
+                                </Grid>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -285,7 +263,7 @@
                     Visibility="{x:Bind IsFloatingMode, Mode=OneWay, Converter={StaticResource BoolToVisConv}, ConverterParameter='Invert'}">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
                         <FontIcon Glyph="&#xE710;" FontSize="10" Foreground="#60CDFF" />
-                        <TextBlock Text="+ Add copyable box" FontSize="11" Foreground="#CCCCCC" />
+                        <TextBlock Text="Add copyable box" FontSize="11" Foreground="#CCCCCC" />
                     </StackPanel>
                 </Button>
             </StackPanel>

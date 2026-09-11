@@ -6,7 +6,7 @@ namespace StickyNotes.Core.Services.Persistence;
 
 /// <summary>
 /// Thread-safe file-backed implementation of IWindowGeometryService persisting window geometry
-/// continuously and on shutdown.
+/// and visibility states continuously and on shutdown.
 /// </summary>
 public sealed class WindowGeometryService : IWindowGeometryService, IDisposable
 {
@@ -16,6 +16,8 @@ public sealed class WindowGeometryService : IWindowGeometryService, IDisposable
     private readonly SemaphoreSlim _lock = new(1, 1);
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
     private System.Threading.Timer? _debounceTimer;
+
+    public bool IsFirstRun => _geometries.IsFirstRun;
 
     public WindowGeometryService(string storageDirectory, IUpdateLogger? logger = null)
     {
@@ -33,16 +35,27 @@ public sealed class WindowGeometryService : IWindowGeometryService, IDisposable
             {
                 var json = File.ReadAllText(_geometryFilePath);
                 _geometries = JsonSerializer.Deserialize<AppWindowGeometries>(json) ?? new AppWindowGeometries();
+                _geometries.IsFirstRun = false;
             }
             else
             {
-                _geometries = new AppWindowGeometries();
+                _geometries = new AppWindowGeometries
+                {
+                    IsFirstRun = true,
+                    MainWindow = new WindowGeometryModel { IsVisible = true },
+                    FloatingWindow = new WindowGeometryModel { IsVisible = false }
+                };
             }
         }
         catch (Exception ex)
         {
             _logger?.LogError("Failed to load saved window geometry. Using defaults.", ex);
-            _geometries = new AppWindowGeometries();
+            _geometries = new AppWindowGeometries
+            {
+                IsFirstRun = true,
+                MainWindow = new WindowGeometryModel { IsVisible = true },
+                FloatingWindow = new WindowGeometryModel { IsVisible = false }
+            };
         }
     }
 
@@ -50,29 +63,49 @@ public sealed class WindowGeometryService : IWindowGeometryService, IDisposable
 
     public WindowGeometryModel GetFloatingWindowGeometry() => _geometries.FloatingWindow;
 
-    public void SaveMainWindowGeometry(int x, int y, int width, int height, bool isMaximized)
+    public void SaveMainWindowGeometry(int x, int y, int width, int height, bool isMaximized, bool isVisible)
     {
-        _geometries.MainWindow = new WindowGeometryModel
-        {
-            X = x,
-            Y = y,
-            Width = width,
-            Height = height,
-            IsMaximized = isMaximized
-        };
+        _geometries.IsFirstRun = false;
+        _geometries.MainWindow.X = x;
+        _geometries.MainWindow.Y = y;
+        _geometries.MainWindow.Width = width;
+        _geometries.MainWindow.Height = height;
+        _geometries.MainWindow.IsMaximized = isMaximized;
+        _geometries.MainWindow.IsVisible = isVisible;
         DebounceFlush();
     }
 
-    public void SaveFloatingWindowGeometry(int x, int y, int width, int height, bool isMaximized)
+    public void SaveFloatingWindowGeometry(int x, int y, int width, int height, bool isMaximized, bool isVisible, string? activeNoteId = null)
     {
-        _geometries.FloatingWindow = new WindowGeometryModel
+        _geometries.IsFirstRun = false;
+        _geometries.FloatingWindow.X = x;
+        _geometries.FloatingWindow.Y = y;
+        _geometries.FloatingWindow.Width = width;
+        _geometries.FloatingWindow.Height = height;
+        _geometries.FloatingWindow.IsMaximized = isMaximized;
+        _geometries.FloatingWindow.IsVisible = isVisible;
+        if (!string.IsNullOrEmpty(activeNoteId))
         {
-            X = x,
-            Y = y,
-            Width = width,
-            Height = height,
-            IsMaximized = isMaximized
-        };
+            _geometries.FloatingWindow.ActiveNoteId = activeNoteId;
+        }
+        DebounceFlush();
+    }
+
+    public void SetMainWindowVisibility(bool isVisible)
+    {
+        _geometries.IsFirstRun = false;
+        _geometries.MainWindow.IsVisible = isVisible;
+        DebounceFlush();
+    }
+
+    public void SetFloatingWindowVisibility(bool isVisible, string? activeNoteId = null)
+    {
+        _geometries.IsFirstRun = false;
+        _geometries.FloatingWindow.IsVisible = isVisible;
+        if (!string.IsNullOrEmpty(activeNoteId))
+        {
+            _geometries.FloatingWindow.ActiveNoteId = activeNoteId;
+        }
         DebounceFlush();
     }
 

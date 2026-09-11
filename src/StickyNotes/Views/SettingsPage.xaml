@@ -7,87 +7,100 @@
     xmlns:models="using:StickyNotes.Core.Models.Update"
     mc:Ignorable="d">
 
-    <ScrollViewer Padding="24" MaxWidth="800" HorizontalAlignment="Left">
-        <StackPanel Spacing="24">
-            <!-- Header -->
-            <Grid ColumnDefinitions="Auto,*">
-                <Button Click="OnBackClick" Width="36" Height="36" Padding="0" Background="Transparent" BorderThickness="0" Margin="0,0,12,0" ToolTipService.ToolTip="Back to Notes">
-                    <FontIcon Glyph="&#xE72B;" FontSize="14" Foreground="White" />
-                </Button>
-                <StackPanel Grid.Column="1" Spacing="2">
-                    <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}" />
-                    <TextBlock Text="Manage note preferences, sync, and application updates."
-                               Style="{StaticResource BodyTextBlockStyle}"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                </StackPanel>
-            </Grid>
+    <Grid Background="#101112">
+        <ScrollViewer
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto"
+            VerticalScrollMode="Auto"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch">
+            <StackPanel
+                MaxWidth="800"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Padding="24"
+                Spacing="24">
+                <!-- Header -->
+                <Grid ColumnDefinitions="Auto,*">
+                    <Button Click="OnBackClick" Width="36" Height="36" Padding="0" Background="Transparent" BorderThickness="0" Margin="0,0,12,0" ToolTipService.ToolTip="Back to Notes">
+                        <FontIcon Glyph="&#xE72B;" FontSize="14" Foreground="White" />
+                    </Button>
+                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}" />
+                        <TextBlock Text="Manage note preferences, sync, and application updates."
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </Grid>
 
-            <!-- Updates Section Card -->
-            <StackPanel Spacing="16">
-                <TextBlock Text="Updates" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <!-- Updates Section Card -->
+                <StackPanel Spacing="16" VerticalAlignment="Top">
+                    <TextBlock Text="Updates" Style="{StaticResource SubtitleTextBlockStyle}" />
 
-                <Border
-                    Background="{ThemeResource LayerFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="16">
-                    <StackPanel Spacing="16">
-                        <!-- Current Version & Status Row -->
-                        <Grid ColumnDefinitions="*,Auto">
+                    <Border
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16"
+                        VerticalAlignment="Top">
+                        <StackPanel Spacing="16" VerticalAlignment="Top">
+                            <!-- Current Version & Status Row -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Sticky Notes" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                    <TextBlock Text="{x:Bind ViewModel.FormattedVersion, Mode=OneWay}"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.FormattedLastCheckedText, Mode=OneWay}"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                </StackPanel>
+
+                                <Button
+                                    Grid.Column="1"
+                                    Content="Check for updates"
+                                    Style="{StaticResource AccentButtonStyle}"
+                                    VerticalAlignment="Center"
+                                    Command="{x:Bind ViewModel.CheckForUpdatesCommand}" />
+                            </Grid>
+
+                            <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                            <!-- Toggles -->
+                            <ToggleSwitch
+                                Header="Automatically check for updates"
+                                IsOn="{x:Bind ViewModel.AutoCheckUpdates, Mode=TwoWay}" />
+
+                            <ToggleSwitch
+                                Header="Download updates automatically"
+                                IsOn="{x:Bind ViewModel.AutoDownloadUpdates, Mode=TwoWay}" />
+
+                            <ToggleSwitch
+                                Header="Install updates automatically when safe"
+                                IsOn="{x:Bind ViewModel.AutoInstallWhenSafe, Mode=TwoWay}" />
+
+                            <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                            <!-- Update Channel Selector -->
                             <StackPanel Spacing="4">
-                                <TextBlock Text="Sticky Notes" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <TextBlock Text="{x:Bind ViewModel.FormattedVersion, Mode=OneWay}"
+                                <TextBlock Text="Update Channel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Text="Select between verified production releases or early preview builds."
                                            Style="{StaticResource CaptionTextBlockStyle}"
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
-                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                                <TextBlock Text="{x:Bind ViewModel.FormattedLastCheckedText, Mode=OneWay}"
-                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                <ComboBox
+                                    Margin="0,4,0,0"
+                                    Width="200"
+                                    ItemsSource="{x:Bind ViewModel.AvailableChannels, Mode=OneWay}"
+                                    SelectedIndex="{x:Bind ViewModel.SelectedChannelIndex, Mode=TwoWay}" />
                             </StackPanel>
-
-                            <Button
-                                Grid.Column="1"
-                                Content="Check for updates"
-                                Style="{StaticResource AccentButtonStyle}"
-                                VerticalAlignment="Center"
-                                Command="{x:Bind ViewModel.CheckForUpdatesCommand}" />
-                        </Grid>
-
-                        <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
-
-                        <!-- Toggles -->
-                        <ToggleSwitch
-                            Header="Automatically check for updates"
-                            IsOn="{x:Bind ViewModel.AutoCheckUpdates, Mode=TwoWay}" />
-
-                        <ToggleSwitch
-                            Header="Download updates automatically"
-                            IsOn="{x:Bind ViewModel.AutoDownloadUpdates, Mode=TwoWay}" />
-
-                        <ToggleSwitch
-                            Header="Install updates automatically when safe"
-                            IsOn="{x:Bind ViewModel.AutoInstallWhenSafe, Mode=TwoWay}" />
-
-                        <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
-
-                        <!-- Update Channel Selector -->
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Update Channel" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <TextBlock Text="Select between verified production releases or early preview builds."
-                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            <ComboBox
-                                Margin="0,4,0,0"
-                                Width="200"
-                                ItemsSource="{x:Bind ViewModel.AvailableChannels, Mode=OneWay}"
-                                SelectedIndex="{x:Bind ViewModel.SelectedChannelIndex, Mode=TwoWay}" />
                         </StackPanel>
-                    </StackPanel>
-                </Border>
+                    </Border>
+                </StackPanel>
             </StackPanel>
-        </StackPanel>
-    </ScrollViewer>
+        </ScrollViewer>
+    </Grid>
 </Page>

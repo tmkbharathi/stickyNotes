@@ -270,28 +270,25 @@
                                                             BorderBrush="{StaticResource SnippetBoxBorderBrush}"
                                                             BorderThickness="1"
                                                             CornerRadius="5"
-                                                            Padding="7,5">
+                                                            Padding="8,6">
                                                             <Grid ColumnDefinitions="*,Auto">
-                                                                <StackPanel Grid.Column="0" Spacing="2">
-                                                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                                                        <TextBlock Text="{x:Bind Type, Mode=OneWay}" FontSize="9" FontWeight="Bold" Foreground="#60CDFF" />
-                                                                        <TextBlock Text="{x:Bind Label, Mode=OneWay}" FontSize="9" FontWeight="SemiBold" Foreground="#AAAAAA" />
-                                                                    </StackPanel>
-                                                                    <TextBlock
-                                                                        Text="{x:Bind Content, Mode=OneWay}"
-                                                                        FontFamily="{StaticResource CodeFontFamily}"
-                                                                        FontSize="10.5"
-                                                                        Foreground="#EEEEEE"
-                                                                        TextTrimming="CharacterEllipsis"
-                                                                        MaxLines="1" />
-                                                                </StackPanel>
+                                                                <TextBlock
+                                                                    Grid.Column="0"
+                                                                    Text="{x:Bind Content, Mode=OneWay}"
+                                                                    FontFamily="{StaticResource CodeFontFamily}"
+                                                                    FontSize="11"
+                                                                    Foreground="#EEEEEE"
+                                                                    TextTrimming="CharacterEllipsis"
+                                                                    MaxLines="2"
+                                                                    VerticalAlignment="Center" />
 
                                                                 <Button
                                                                     Grid.Column="1"
                                                                     Click="OnSnippetBoxCopyClick"
                                                                     Tag="{x:Bind Content, Mode=OneWay}"
                                                                     Height="22"
-                                                                    Padding="5,0"
+                                                                    Padding="6,0"
+                                                                    Margin="6,0,0,0"
                                                                     Background="#15FFFFFF"
                                                                     BorderThickness="0"
                                                                     CornerRadius="3"

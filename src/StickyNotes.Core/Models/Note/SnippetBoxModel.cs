@@ -36,15 +36,18 @@ public sealed class SnippetBoxModel : INotifyPropertyChanged
     public string Type
     {
         get => _type;
-        set { if (_type != value) { _type = value; OnPropertyChanged(); } }
+        set { if (_type != value) { _type = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayLabel)); } }
     }
 
     [JsonPropertyName("label")]
     public string Label
     {
         get => _label;
-        set { if (_label != value) { _label = value; OnPropertyChanged(); } }
+        set { if (_label != value) { _label = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayLabel)); } }
     }
+
+    [JsonIgnore]
+    public string DisplayLabel => string.IsNullOrWhiteSpace(_label) || _label.Equals(_type, StringComparison.OrdinalIgnoreCase) ? "Snippet" : _label;
 
     [JsonPropertyName("content")]
     public string Content

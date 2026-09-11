@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:converters="using:StickyNotes.Views.Converters"
+    xmlns:controls="using:StickyNotes.Views.Controls"
     xmlns:models="using:StickyNotes.Core.Models.Note"
     mc:Ignorable="d">
 
@@ -48,23 +49,8 @@
                 <FontIcon Glyph="&#xE718;" FontSize="11" Foreground="{x:Bind Note.ColorTheme, Mode=OneWay, Converter={StaticResource NoteAccentConv}}" />
             </Button>
 
-            <!-- Right: Copy All, Minimize, Close -->
+            <!-- Right: Minimize, Close -->
             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                <!-- Single Copy All Button for the whole note -->
-                <Button
-                    x:Name="CopyAllButton"
-                    Click="OnCopyAllClick"
-                    Height="24"
-                    Padding="6,0"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    ToolTipService.ToolTip="Copy entire note &amp; blocks">
-                    <StackPanel Orientation="Horizontal" Spacing="4">
-                        <FontIcon x:Name="CopyIcon" Glyph="&#xE8C8;" FontSize="11" Foreground="#CCCCCC" />
-                        <TextBlock x:Name="CopyFeedbackText" Text="" FontSize="10" Foreground="#60CDFF" Visibility="Collapsed" />
-                    </StackPanel>
-                </Button>
-
                 <!-- Minimize Window -->
                 <Button
                     Click="OnMinimizeClick"
@@ -112,7 +98,7 @@
                     IsTextSelectionEnabled="True"
                     LineHeight="17" />
 
-                <!-- Copyable Blocks (Read-Only Code / Command Content displayed sequentially) -->
+                <!-- Copyable Blocks (Read-Only Content with top-right animated Copy icon) -->
                 <ItemsControl ItemsSource="{x:Bind Note.Snippets, Mode=OneWay}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="models:SnippetBoxModel">
@@ -123,13 +109,26 @@
                                 BorderThickness="1"
                                 CornerRadius="4"
                                 Padding="8,6">
-                                <TextBlock
-                                    Text="{x:Bind Content, Mode=OneWay}"
-                                    FontFamily="{StaticResource CodeFontFamily}"
-                                    FontSize="11"
-                                    Foreground="#FFFAE0"
-                                    TextWrapping="Wrap"
-                                    IsTextSelectionEnabled="True" />
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <!-- Monospace Code / Command Text Content -->
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Text="{x:Bind Content, Mode=OneWay}"
+                                        FontFamily="{StaticResource CodeFontFamily}"
+                                        FontSize="11"
+                                        Foreground="#FFFAE0"
+                                        TextWrapping="Wrap"
+                                        IsTextSelectionEnabled="True"
+                                        VerticalAlignment="Center"
+                                        Margin="0,0,6,0" />
+
+                                    <!-- Top-Right Inside-Block Icon-Only Copy Button -->
+                                    <controls:CopyIconButton
+                                        Grid.Column="1"
+                                        TextToCopy="{x:Bind Content, Mode=OneWay}"
+                                        VerticalAlignment="Top"
+                                        HorizontalAlignment="Right" />
+                                </Grid>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
