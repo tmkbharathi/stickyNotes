@@ -1,0 +1,109 @@
+name: Build and Release
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+  packages: write
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Update Version in Files (from tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag.TrimStart('v')
+          Write-Output "Updating version to $version from tag $tag"
+
+          # 1. Update StickyNotes.csproj
+          $csprojPath = "src/StickyNotes/StickyNotes.csproj"
+          $csprojContent = Get-Content $csprojPath -Raw
+          $csprojContent = $csprojContent -replace '<Version>[^<]+</Version>', "<Version>$version</Version>"
+          Set-Content $csprojPath $csprojContent
+
+          # 2. Update installer.iss
+          $issPath = "installer.iss"
+          $issContent = Get-Content $issPath -Raw
+          $issContent = $issContent -replace 'AppVersion=[^\r\n]+', "AppVersion=$version"
+          Set-Content $issPath $issContent
+
+      - name: Commit version updates
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/StickyNotes/StickyNotes.csproj installer.iss
+          git commit -m "Auto-update version files to ${{ github.ref_name }} [skip ci]" || echo "No changes to commit"
+          git push origin HEAD:main
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore src/StickyNotes/StickyNotes.csproj
+
+      - name: Build Release
+        run: dotnet build src/StickyNotes/StickyNotes.csproj -c Release -p:Platform=x64
+
+      - name: Publish self-contained WinUI 3 app
+        run: dotnet publish src/StickyNotes/StickyNotes.csproj -c Release -r win-x64 --self-contained true -p:WindowsAppSDKSelfContained=true -p:Platform=x64
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress --yes
+
+      - name: Build installer
+        run: |
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer.iss
+
+      - name: Archive published output and installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: StickyNotes-windows-x64
+          path: Output/StickyNotes-setup.exe
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: StickyNotes-windows-x64
+          path: release-artifact
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: release-artifact/StickyNotes-setup.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
