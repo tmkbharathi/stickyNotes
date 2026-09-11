@@ -13,6 +13,7 @@
     <RuntimeIdentifier Condition=" '$(RuntimeIdentifier)' == '' ">win-$(Platform)</RuntimeIdentifier>
     <WindowsPackageType>None</WindowsPackageType>
     <WindowsAppSDKSelfContained Condition=" '$(WindowsAppSDKSelfContained)' == '' ">false</WindowsAppSDKSelfContained>
+    <EnableMsixTooling>true</EnableMsixTooling>
     <UseWinUI>true</UseWinUI>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>

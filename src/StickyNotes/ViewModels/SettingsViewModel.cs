@@ -28,7 +28,22 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         _settingsService = settingsService;
         _updateService = updateService;
 
-        _updateService.StateChanged += (_, _) => OnPropertyChanged(nameof(StatusText));
+        _updateService.StateChanged += (_, _) =>
+        {
+            if (App.CurrentAppSynchronizationContext != null)
+            {
+                App.CurrentAppSynchronizationContext.Post(_ =>
+                {
+                    OnPropertyChanged(nameof(StatusText));
+                    OnPropertyChanged(nameof(FormattedLastCheckedText));
+                }, null);
+            }
+            else
+            {
+                OnPropertyChanged(nameof(StatusText));
+                OnPropertyChanged(nameof(FormattedLastCheckedText));
+            }
+        };
         CheckForUpdatesCommand = new AsyncRelayCommand(async () => await _updateService.CheckForUpdatesAsync(force: true));
     }
 

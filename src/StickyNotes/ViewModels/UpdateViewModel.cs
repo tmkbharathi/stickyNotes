@@ -101,13 +101,31 @@ public sealed class UpdateViewModel : INotifyPropertyChanged
 
     private void OnUpdateStateChanged(object? sender, UpdateStateChangedEventArgs e)
     {
-        RefreshAllProperties();
+        if (App.CurrentAppSynchronizationContext != null)
+        {
+            App.CurrentAppSynchronizationContext.Post(_ => RefreshAllProperties(), null);
+        }
+        else
+        {
+            RefreshAllProperties();
+        }
     }
 
     private void OnDownloadProgressChanged(object? sender, double progress)
     {
-        OnPropertyChanged(nameof(DownloadProgressPercentage));
-        OnPropertyChanged(nameof(StatusText));
+        if (App.CurrentAppSynchronizationContext != null)
+        {
+            App.CurrentAppSynchronizationContext.Post(_ =>
+            {
+                OnPropertyChanged(nameof(DownloadProgressPercentage));
+                OnPropertyChanged(nameof(StatusText));
+            }, null);
+        }
+        else
+        {
+            OnPropertyChanged(nameof(DownloadProgressPercentage));
+            OnPropertyChanged(nameof(StatusText));
+        }
     }
 
     private void RefreshAllProperties()

@@ -29,6 +29,7 @@ Name: "startupicon"; Description: "Start Sticky Notes automatically on Windows s
 
 [Files]
 Source: "src\StickyNotes\bin\x64\Release\net8.0-windows10.0.19041.0\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "src\StickyNotes\bin\x64\Release\net8.0-windows10.0.19041.0\win-x64\publish\StickyNotes.pri"; DestDir: "{app}"; DestName: "resources.pri"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
