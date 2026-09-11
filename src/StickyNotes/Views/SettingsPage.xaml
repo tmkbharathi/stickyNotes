@@ -10,12 +10,17 @@
     <ScrollViewer Padding="24" MaxWidth="800" HorizontalAlignment="Left">
         <StackPanel Spacing="24">
             <!-- Header -->
-            <StackPanel Spacing="4">
-                <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}" />
-                <TextBlock Text="Manage note preferences, sync, and application updates."
-                           Style="{StaticResource BodyTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            </StackPanel>
+            <Grid ColumnDefinitions="Auto,*">
+                <Button Click="OnBackClick" Width="36" Height="36" Padding="0" Background="Transparent" BorderThickness="0" Margin="0,0,12,0" ToolTipService.ToolTip="Back to Notes">
+                    <FontIcon Glyph="&#xE72B;" FontSize="14" Foreground="White" />
+                </Button>
+                <StackPanel Grid.Column="1" Spacing="2">
+                    <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}" />
+                    <TextBlock Text="Manage note preferences, sync, and application updates."
+                               Style="{StaticResource BodyTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+            </Grid>
 
             <!-- Updates Section Card -->
             <StackPanel Spacing="16">

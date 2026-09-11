@@ -36,32 +36,56 @@ public sealed partial class NotesHubPage : Page
     private async void OnNewNoteClick(object sender, RoutedEventArgs e)
     {
         if (ViewModel == null) return;
-        await ShowEditNoteDialogAsync(new NoteModel
-        {
-            Title = "Quick Note",
-            Content = "",
-            Category = "Work",
-            ColorTheme = "yellow"
-        }, isNew: true);
+        await ViewModel.CreateNewNoteAsync();
     }
 
-    private async void OnNoteItemClick(object sender, ItemClickEventArgs e)
+    private async void OnSyncUpdatesClick(object sender, RoutedEventArgs e)
     {
-        if (e.ClickedItem is NoteModel note)
+        if (ViewModel == null) return;
+        await ViewModel.UpdateVm.CheckForUpdatesAsync(force: true);
+    }
+
+    private void OnToggleFloatingPaneClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel == null) return;
+        ViewModel.IsFloatingWindowVisible = !ViewModel.IsFloatingWindowVisible;
+    }
+
+    private void OnOpenStandaloneWindowClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel?.ActiveNote == null) return;
+        var noteWin = new NoteWindow(
+            ViewModel.ActiveNote,
+            onNoteUpdated: async _ => await ViewModel.SaveNoteAsync(ViewModel.ActiveNote),
+            onNewNoteRequested: async _ => await ViewModel.CreateNewNoteAsync());
+        noteWin.Activate();
+    }
+
+    private void OnFilterNavClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string cat && ViewModel != null)
         {
-            await ShowEditNoteDialogAsync(note, isNew: false);
+            ViewModel.FilterCategory(cat);
         }
     }
 
-    private async void OnDeleteNoteClick(object sender, RoutedEventArgs e)
+    private void OnColorFilterClick(object sender, RoutedEventArgs e)
     {
-        if (sender is Button btn && btn.Tag is NoteModel note && ViewModel != null)
+        if (sender is Button btn && btn.Tag is string color && ViewModel != null)
         {
-            await ViewModel.DeleteNoteAsync(note);
+            ViewModel.FilterByColor(color);
         }
     }
 
-    private async void OnTogglePinClick(object sender, RoutedEventArgs e)
+    private void OnNoteCardItemClick(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is NoteModel note && ViewModel != null)
+        {
+            ViewModel.OpenNoteInEditor(note);
+        }
+    }
+
+    private async void OnCardPinClick(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is NoteModel note && ViewModel != null)
         {
@@ -69,92 +93,120 @@ public sealed partial class NotesHubPage : Page
         }
     }
 
-    private void OnFilterClick(object sender, RoutedEventArgs e)
+    private void OnCardCopyAllClick(object sender, RoutedEventArgs e)
     {
-        if (sender is Button btn && btn.Tag is string tag && ViewModel != null)
+        if (sender is Button btn && btn.Tag is NoteModel note)
         {
-            ViewModel.FilterCategory(tag);
-        }
-    }
+            CopyNoteToClipboard(note);
 
-    private void OnCopySnippetClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button btn && btn.Tag is string snippetContent && !string.IsNullOrEmpty(snippetContent))
-        {
-            var dataPackage = new DataPackage();
-            dataPackage.SetText(snippetContent);
-            Clipboard.SetContent(dataPackage);
-        }
-    }
-
-    private async Task ShowEditNoteDialogAsync(NoteModel note, bool isNew)
-    {
-        var titleBox = new TextBox { Header = "Title", Text = note.Title, Margin = new Thickness(0, 0, 0, 12) };
-        var contentBox = new TextBox
-        {
-            Header = "Note Content",
-            Text = note.Content,
-            AcceptsReturn = true,
-            TextWrapping = TextWrapping.Wrap,
-            Height = 120,
-            Margin = new Thickness(0, 0, 0, 12)
-        };
-
-        var categoryCombo = new ComboBox
-        {
-            Header = "Category",
-            ItemsSource = new[] { "Work", "Dev", "Personal", "Design", "Study" },
-            SelectedItem = note.Category,
-            Margin = new Thickness(0, 0, 0, 12)
-        };
-
-        var snippetLabelBox = new TextBox { Header = "Snippet Label (optional)", PlaceholderText = "e.g. Build Command", Margin = new Thickness(0, 0, 0, 8) };
-        var snippetContentBox = new TextBox { Header = "Code / Command Snippet (optional)", PlaceholderText = "e.g. dotnet run", Margin = new Thickness(0, 0, 0, 12) };
-
-        var panel = new StackPanel { Width = 380 };
-        panel.Children.Add(titleBox);
-        panel.Children.Add(contentBox);
-        panel.Children.Add(categoryCombo);
-        panel.Children.Add(snippetLabelBox);
-        panel.Children.Add(snippetContentBox);
-
-        var dialog = new ContentDialog
-        {
-            Title = isNew ? "Create New Sticky Note" : "Edit Sticky Note",
-            PrimaryButtonText = "Save",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Primary,
-            Content = panel,
-            XamlRoot = this.XamlRoot
-        };
-
-        var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary && ViewModel != null)
-        {
-            note.Title = string.IsNullOrWhiteSpace(titleBox.Text) ? "Untitled Note" : titleBox.Text;
-            note.Content = contentBox.Text;
-            note.Category = categoryCombo.SelectedItem?.ToString() ?? "Work";
-
-            if (!string.IsNullOrWhiteSpace(snippetContentBox.Text))
+            if (btn.Content is StackPanel sp && sp.Children.Count >= 2 && sp.Children[1] is TextBlock tb)
             {
-                note.Snippets.Clear();
-                note.Snippets.Add(new SnippetBoxModel
+                var orig = tb.Text;
+                tb.Text = "Copied!";
+                Task.Delay(1500).ContinueWith(_ =>
                 {
-                    Label = string.IsNullOrWhiteSpace(snippetLabelBox.Text) ? "Code" : snippetLabelBox.Text,
-                    Content = snippetContentBox.Text
+                    App.CurrentAppSynchronizationContext?.Post(__ => tb.Text = orig, null);
                 });
             }
+        }
+    }
 
-            if (isNew)
+    private void OnSnippetBoxCopyClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string content && !string.IsNullOrEmpty(content))
+        {
+            var dataPackage = new DataPackage();
+            dataPackage.SetText(content);
+            Clipboard.SetContent(dataPackage);
+
+            if (btn.Content is StackPanel sp && sp.Children.Count >= 2 && sp.Children[1] is TextBlock tb)
             {
-                await ViewModel.SaveNoteAsync(note);
-                ViewModel.AllNotes.Insert(0, note);
-                ViewModel.FilterCategory("all");
-            }
-            else
-            {
-                await ViewModel.SaveNoteAsync(note);
+                var orig = tb.Text;
+                tb.Text = "Copied!";
+                Task.Delay(1500).ContinueWith(_ =>
+                {
+                    App.CurrentAppSynchronizationContext?.Post(__ => tb.Text = orig, null);
+                });
             }
         }
+    }
+
+    private void OnToggleActiveNotePinClick(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.ToggleActiveNotePin();
+    }
+
+    private async void OnDeleteActiveNoteClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel?.ActiveNote != null)
+        {
+            await ViewModel.DeleteNoteAsync(ViewModel.ActiveNote);
+        }
+    }
+
+    private void OnAddSnippetBoxToActiveClick(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.AddSnippetBoxToActiveNote();
+    }
+
+    private void OnActiveSnippetCopyClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string content && !string.IsNullOrEmpty(content))
+        {
+            var dataPackage = new DataPackage();
+            dataPackage.SetText(content);
+            Clipboard.SetContent(dataPackage);
+
+            if (btn.Content is StackPanel sp && sp.Children.Count >= 2 && sp.Children[1] is TextBlock tb)
+            {
+                var orig = tb.Text;
+                tb.Text = "Copied!";
+                Task.Delay(1500).ContinueWith(_ =>
+                {
+                    App.CurrentAppSynchronizationContext?.Post(__ => tb.Text = orig, null);
+                });
+            }
+        }
+    }
+
+    private void OnActiveSnippetRemoveClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is SnippetBoxModel snippet && ViewModel != null)
+        {
+            ViewModel.RemoveSnippetBoxFromActiveNote(snippet);
+        }
+    }
+
+    private void OnActiveColorSelectClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string color && ViewModel != null)
+        {
+            ViewModel.SetActiveNoteTheme(color);
+        }
+    }
+
+    private void OnCopyActiveNoteAllClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel?.ActiveNote == null) return;
+        CopyNoteToClipboard(ViewModel.ActiveNote);
+
+        FloatingCopyAllText.Text = "Copied!";
+        Task.Delay(1500).ContinueWith(_ =>
+        {
+            App.CurrentAppSynchronizationContext?.Post(__ => FloatingCopyAllText.Text = "Copy all", null);
+        });
+    }
+
+    private static void CopyNoteToClipboard(NoteModel note)
+    {
+        var text = $"{note.Title}\n\n{note.Content}";
+        if (note.Snippets.Count > 0)
+        {
+            text += "\n\n-- Snippets --\n" + string.Join("\n\n", note.Snippets.Select(s => $"[{s.Type} - {s.Label}]\n{s.Content}"));
+        }
+
+        var dataPackage = new DataPackage();
+        dataPackage.SetText(text);
+        Clipboard.SetContent(dataPackage);
     }
 }

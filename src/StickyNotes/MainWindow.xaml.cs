@@ -60,20 +60,30 @@ public sealed partial class MainWindow : Window
         _ = HubViewModel.InitializeAsync();
     }
 
-    private void OnNavSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
-    {
-        if (args.IsSettingsSelected)
-        {
-            ContentFrame.Navigate(typeof(SettingsPage), SettingsVm);
-        }
-        else
-        {
-            NavigateToNotes();
-        }
-    }
-
     private void NavigateToNotes()
     {
         ContentFrame.Navigate(typeof(NotesHubPage), HubViewModel);
+    }
+
+    private void OnOpenSettingsClick(object sender, RoutedEventArgs e)
+    {
+        ContentFrame.Navigate(typeof(SettingsPage), SettingsVm);
+    }
+
+    private void OnOpenPopoutWindowClick(object sender, RoutedEventArgs e)
+    {
+        if (HubViewModel.ActiveNote != null)
+        {
+            var noteWin = new NoteWindow(
+                HubViewModel.ActiveNote,
+                _notePersistence,
+                onNoteUpdated: async _ => await HubViewModel.SaveNoteAsync(HubViewModel.ActiveNote),
+                onNewNoteRequested: async _ => await HubViewModel.CreateNewNoteAsync());
+            noteWin.Activate();
+        }
+        else
+        {
+            _ = HubViewModel.CreateNewNoteAsync();
+        }
     }
 }

@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
 namespace StickyNotes.Core.Models.Note;
@@ -5,23 +7,64 @@ namespace StickyNotes.Core.Models.Note;
 /// <summary>
 /// Represents an isolated, copyable code, command, path, or configuration snippet inside a sticky note.
 /// </summary>
-public sealed class SnippetBoxModel
+public sealed class SnippetBoxModel : INotifyPropertyChanged
 {
+    public static readonly string[] AvailableTypes = new[] { "CMD", "GIT", "PATH", "C#", "JSON", "SQL", "URL", "FIGMA" };
+
+    [JsonIgnore]
+    public string[] TypeOptions => AvailableTypes;
+
+    private string _id = Guid.NewGuid().ToString("N");
+    private string _type = "CMD"; // CMD, GIT, PATH, JSON, C#, SQL, URL, FIGMA
+    private string _label = "Command";
+    private string _content = string.Empty;
+    private bool _isMultiline = false;
+    private int _orderIndex = 0;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
     [JsonPropertyName("id")]
-    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string Id
+    {
+        get => _id;
+        set { if (_id != value) { _id = value; OnPropertyChanged(); } }
+    }
 
     [JsonPropertyName("type")]
-    public string Type { get; set; } = "CMD"; // CMD, GIT, PATH, JSON, C#, SQL, URL, FIGMA
+    public string Type
+    {
+        get => _type;
+        set { if (_type != value) { _type = value; OnPropertyChanged(); } }
+    }
 
     [JsonPropertyName("label")]
-    public string Label { get; set; } = "Command";
+    public string Label
+    {
+        get => _label;
+        set { if (_label != value) { _label = value; OnPropertyChanged(); } }
+    }
 
     [JsonPropertyName("content")]
-    public string Content { get; set; } = string.Empty;
+    public string Content
+    {
+        get => _content;
+        set { if (_content != value) { _content = value; OnPropertyChanged(); } }
+    }
 
     [JsonPropertyName("isMultiline")]
-    public bool IsMultiline { get; set; } = false;
+    public bool IsMultiline
+    {
+        get => _isMultiline;
+        set { if (_isMultiline != value) { _isMultiline = value; OnPropertyChanged(); } }
+    }
 
     [JsonPropertyName("orderIndex")]
-    public int OrderIndex { get; set; } = 0;
+    public int OrderIndex
+    {
+        get => _orderIndex;
+        set { if (_orderIndex != value) { _orderIndex = value; OnPropertyChanged(); } }
+    }
 }
+

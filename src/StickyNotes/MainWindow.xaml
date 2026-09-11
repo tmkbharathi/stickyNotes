@@ -4,53 +4,92 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:controls="using:StickyNotes.Views.Controls"
-    xmlns:views="using:StickyNotes.Views"
     mc:Ignorable="d"
     Title="Sticky Notes">
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid Background="#101112">
         <Grid.RowDefinitions>
+            <!-- Custom In-App TitleBar matching index.html -->
             <RowDefinition Height="Auto" />
+            <!-- Update Available Notification Banner -->
             <RowDefinition Height="Auto" />
+            <!-- Main Content View -->
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Custom In-App TitleBar -->
-        <Grid x:Name="AppTitleBar"
-              Grid.Row="0"
-              Height="44"
-              VerticalAlignment="Top"
-              Background="Transparent"
-              Padding="16,0,0,0">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
-                <FontIcon Glyph="&#xE8D7;" FontSize="16" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                <TextBlock Text="Sticky Notes"
-                           Style="{StaticResource CaptionTextBlockStyle}"
-                           FontWeight="SemiBold"
-                           VerticalAlignment="Center" />
+        <!-- In-App TitleBar -->
+        <Grid
+            x:Name="AppTitleBar"
+            Grid.Row="0"
+            Height="44"
+            Background="#1E1E1E"
+            BorderBrush="#1AFFFFFF"
+            BorderThickness="0,0,0,1"
+            Padding="14,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Brand & WinUI 3 badge -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <Border Background="#132333" BorderBrush="#3560CDFF" BorderThickness="1" CornerRadius="4" Padding="8,3">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE782;" FontSize="12" Foreground="#60CDFF" />
+                        <TextBlock Text="WinUI 3 Dark" FontSize="11" FontWeight="SemiBold" Foreground="#60CDFF" />
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <FontIcon Glyph="&#xE70F;" FontSize="14" Foreground="#F5C542" />
+                    <TextBlock Text="Sticky Notes" FontWeight="Bold" FontSize="13" Foreground="White" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Right Controls: Version Pill, Settings, Floating Window Toggle -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <Border Background="#1A2F42" BorderBrush="#3060CDFF" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                    <TextBlock Text="v1.0.0" FontFamily="Cascadia Code, Consolas" FontSize="11" FontWeight="Bold" Foreground="#60CDFF" />
+                </Border>
+
+                <Button
+                    Click="OnOpenSettingsClick"
+                    Height="30"
+                    Padding="10,0"
+                    Background="#2B2B2B"
+                    BorderBrush="#1AFFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="4">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE713;" FontSize="11" Foreground="#CCCCCC" />
+                        <TextBlock Text="Settings" FontSize="11" Foreground="White" />
+                    </StackPanel>
+                </Button>
+
+                <Button
+                    Click="OnOpenPopoutWindowClick"
+                    Height="30"
+                    Padding="10,0"
+                    Background="#2B2B2B"
+                    BorderBrush="#1AFFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="4">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE7B5;" FontSize="11" Foreground="#60CDFF" />
+                        <TextBlock Text="Floating Window" FontSize="11" Foreground="White" />
+                    </StackPanel>
+                </Button>
             </StackPanel>
         </Grid>
 
-        <!-- Top Update Banner Notification Host -->
+        <!-- Update Available Banner Notification Host -->
         <ContentControl
             x:Name="UpdateBannerHost"
             Grid.Row="1"
-            Margin="16,4,16,0" />
+            Margin="0" />
 
-        <!-- Main Navigation View -->
-        <NavigationView
-            x:Name="MainNav"
-            Grid.Row="2"
-            IsBackButtonVisible="Collapsed"
-            IsSettingsVisible="True"
-            PaneDisplayMode="Top"
-            SelectionChanged="OnNavSelectionChanged">
-            <NavigationView.MenuItems>
-                <NavigationViewItem Content="All Notes" Tag="notes" Icon="AllApps" IsSelected="True" />
-            </NavigationView.MenuItems>
-
-            <Frame x:Name="ContentFrame" Margin="16" />
-        </NavigationView>
+        <!-- Main Frame -->
+        <Frame x:Name="ContentFrame" Grid.Row="2" />
     </Grid>
 </Window>

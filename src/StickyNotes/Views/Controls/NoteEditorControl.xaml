@@ -1,0 +1,256 @@
+<UserControl
+    x:Class="StickyNotes.Views.Controls.NoteEditorControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="using:StickyNotes.Views.Converters"
+    xmlns:models="using:StickyNotes.Core.Models.Note"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:NoteBackgroundConverter x:Key="NoteBgConv" />
+        <converters:NoteBorderConverter x:Key="NoteBorderConv" />
+        <converters:NoteHeaderConverter x:Key="NoteHdrConv" />
+        <converters:NoteAccentConverter x:Key="NoteAccentConv" />
+    </UserControl.Resources>
+
+    <Grid Background="{x:Bind Note.ColorTheme, Mode=OneWay, Converter={StaticResource NoteBgConv}}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Floating Note Header -->
+        <Grid
+            x:Name="HeaderBar"
+            Grid.Row="0"
+            Height="38"
+            Background="{x:Bind Note.ColorTheme, Mode=OneWay, Converter={StaticResource NoteHdrConv}}"
+            Padding="10,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: + New Note & Pin -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                <Button Click="OnNewNoteClick" Width="26" Height="26" Padding="0" Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="New Note">
+                    <FontIcon Glyph="&#xE710;" FontSize="11" Foreground="White" />
+                </Button>
+                <AppBarSeparator />
+                <Button Click="OnTogglePinClick" Width="26" Height="26" Padding="0" Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="Pin Note">
+                    <FontIcon Glyph="&#xE718;" FontSize="11" Foreground="{x:Bind Note.ColorTheme, Mode=OneWay, Converter={StaticResource NoteAccentConv}}" />
+                </Button>
+            </StackPanel>
+
+            <!-- Center: Save status -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                <Ellipse x:Name="SaveStatusDot" Width="6" Height="6" Fill="#4ADE80" />
+                <TextBlock x:Name="SaveStatusLabel" Text="Saved" FontSize="10.5" Foreground="#CCCCCC" />
+            </StackPanel>
+
+            <!-- Right: Actions -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                <Button Click="OnPopoutClick" Width="26" Height="26" Padding="0" Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="Pop out into separate window">
+                    <FontIcon Glyph="&#xE7B5;" FontSize="10" Foreground="#AAAAAA" />
+                </Button>
+                <Button Click="OnDeleteClick" Width="26" Height="26" Padding="0" Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="Delete note">
+                    <FontIcon Glyph="&#xE74D;" FontSize="11" Foreground="#FF8888" />
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Floating Toolbar: +Box, Copy all, Color Theme Flyout -->
+        <Grid Grid.Row="1" Height="36" Background="#20000000" BorderBrush="#15FFFFFF" BorderThickness="0,0,0,1" Padding="10,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                <Button Click="OnAddSnippetBoxClick" Style="{StaticResource DefaultButtonStyle}" Padding="8,4" Height="26">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <FontIcon Glyph="&#xE943;" FontSize="11" Foreground="#60CDFF" />
+                        <TextBlock Text="+Box" FontSize="11" FontWeight="SemiBold" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <Button Click="OnCopyAllClick" Style="{StaticResource DefaultButtonStyle}" Padding="8,4" Height="26" ToolTipService.ToolTip="Copy note content and snippets">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <FontIcon Glyph="&#xE8C8;" FontSize="10" />
+                        <TextBlock x:Name="CopyAllText" Text="Copy all" FontSize="10.5" />
+                    </StackPanel>
+                </Button>
+
+                <!-- Color palette selector -->
+                <Button Style="{StaticResource DefaultButtonStyle}" Padding="6,4" Height="26" ToolTipService.ToolTip="Select color theme">
+                    <FontIcon Glyph="&#xE790;" FontSize="11" />
+                    <Button.Flyout>
+                        <Flyout Placement="Bottom">
+                            <StackPanel Orientation="Horizontal" Spacing="8" Padding="4">
+                                <Button Click="OnColorSelectClick" Tag="yellow" Width="22" Height="22" CornerRadius="11" Background="#F5C542" BorderBrush="#F5C542" />
+                                <Button Click="OnColorSelectClick" Tag="blue" Width="22" Height="22" CornerRadius="11" Background="#60CDFF" BorderBrush="#60CDFF" />
+                                <Button Click="OnColorSelectClick" Tag="green" Width="22" Height="22" CornerRadius="11" Background="#6CCF8E" BorderBrush="#6CCF8E" />
+                                <Button Click="OnColorSelectClick" Tag="pink" Width="22" Height="22" CornerRadius="11" Background="#F48FB1" BorderBrush="#F48FB1" />
+                                <Button Click="OnColorSelectClick" Tag="purple" Width="22" Height="22" CornerRadius="11" Background="#CE93D8" BorderBrush="#CE93D8" />
+                                <Button Click="OnColorSelectClick" Tag="gray" Width="22" Height="22" CornerRadius="11" Background="#888890" BorderBrush="#888890" />
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Editable Body: Title, Content, Dynamic Snippets -->
+        <ScrollViewer Grid.Row="2" Padding="14,10" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="10">
+                <!-- Title -->
+                <TextBox
+                    Text="{x:Bind Note.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    PlaceholderText="Untitled Note..."
+                    FontWeight="Bold"
+                    FontSize="14"
+                    Foreground="White"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Padding="0,4"
+                    TextChanged="OnContentChanged" />
+
+                <!-- Content -->
+                <TextBox
+                    Text="{x:Bind Note.Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    PlaceholderText="Type note description or instructions here..."
+                    AcceptsReturn="True"
+                    TextWrapping="Wrap"
+                    MinHeight="50"
+                    FontSize="12"
+                    Foreground="#EEEEEE"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Padding="0,4"
+                    TextChanged="OnContentChanged" />
+
+                <!-- Dynamic Snippet Boxes Container -->
+                <ItemsControl ItemsSource="{x:Bind Note.Snippets, Mode=OneWay}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:SnippetBoxModel">
+                            <Border
+                                Margin="0,0,0,8"
+                                Background="{StaticResource SnippetBoxBgBrush}"
+                                BorderBrush="{StaticResource SnippetBoxBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="8">
+                                <StackPanel Spacing="6">
+                                    <!-- Header: Type, Label, Copy & Delete -->
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                        <Border
+                                            Grid.Column="0"
+                                            Background="#2560CDFF"
+                                            BorderBrush="#4060CDFF"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            Padding="6,2"
+                                            Margin="0,0,6,0">
+                                            <TextBlock Text="{x:Bind Type, Mode=OneWay}" FontSize="9.5" FontWeight="Bold" Foreground="#60CDFF" />
+                                        </Border>
+
+                                        <TextBox
+                                            Grid.Column="1"
+                                            Text="{x:Bind Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            PlaceholderText="Label (e.g. Build Command)"
+                                            FontSize="11"
+                                            Height="24"
+                                            Padding="4,2"
+                                            Background="Transparent"
+                                            BorderThickness="0,0,0,1" />
+
+                                        <Button
+                                            Grid.Column="2"
+                                            Click="OnSnippetCopyClick"
+                                            Tag="{x:Bind Content, Mode=OneWay}"
+                                            Height="24"
+                                            Padding="8,0"
+                                            Margin="6,0,4,0"
+                                            Style="{StaticResource DefaultButtonStyle}">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <FontIcon Glyph="&#xE8C8;" FontSize="10" />
+                                                <TextBlock Text="Copy" FontSize="10" />
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button
+                                            Grid.Column="3"
+                                            Click="OnSnippetRemoveClick"
+                                            Tag="{x:Bind}"
+                                            Width="24"
+                                            Height="24"
+                                            Padding="0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            ToolTipService.ToolTip="Remove snippet box">
+                                            <FontIcon Glyph="&#xE711;" FontSize="10" Foreground="#FF8888" />
+                                        </Button>
+                                    </Grid>
+
+                                    <!-- Monospace Content -->
+                                    <TextBox
+                                        Text="{x:Bind Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        PlaceholderText="// Enter command or snippet..."
+                                        FontFamily="{StaticResource CodeFontFamily}"
+                                        FontSize="11.5"
+                                        AcceptsReturn="True"
+                                        TextWrapping="Wrap"
+                                        Background="#15000000"
+                                        BorderBrush="#10FFFFFF"
+                                        BorderThickness="1"
+                                        CornerRadius="4"
+                                        Padding="6" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- + Add Copyable Box Button -->
+                <Button
+                    Click="OnAddSnippetBoxClick"
+                    HorizontalAlignment="Stretch"
+                    Height="32"
+                    Background="#10000000"
+                    BorderBrush="#25FFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="6">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
+                        <FontIcon Glyph="&#xE710;" FontSize="11" Foreground="#60CDFF" />
+                        <TextBlock Text="+ Add copyable box" FontSize="11" Foreground="#E0E0E0" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Floating Window Status Bar -->
+        <Grid Grid.Row="3" Height="24" Background="#15000000" BorderBrush="#10FFFFFF" BorderThickness="0,1,0,0" Padding="12,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <TextBlock Text="{x:Bind Note.Snippets.Count, Mode=OneWay}" FontSize="10" Foreground="#888888" />
+                <TextBlock Text="snippet boxes" FontSize="10" Foreground="#888888" />
+                <TextBlock Text="•" FontSize="10" Foreground="#555555" />
+                <TextBlock Text="{x:Bind Note.Category, Mode=OneWay}" FontSize="10" Foreground="#888888" />
+            </StackPanel>
+
+            <FontIcon Grid.Column="1" Glyph="&#xE90E;" FontSize="10" Foreground="#555555" VerticalAlignment="Center" ToolTipService.ToolTip="Floating note ready" />
+        </Grid>
+    </Grid>
+</UserControl>

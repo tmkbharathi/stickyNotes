@@ -163,7 +163,7 @@ public sealed class JsonNotePersistenceService : INotePersistenceService
                 Category = "Work",
                 IsPinned = true,
                 IsOpenInWindow = true,
-                Snippets = new List<SnippetBoxModel>
+                Snippets = new System.Collections.ObjectModel.ObservableCollection<SnippetBoxModel>
                 {
                     new() { Id = "s-1", Type = "CMD", Label = "CMD", Content = "dotnet publish -c Release -r win-x64 --self-contained", OrderIndex = 0 },
                     new() { Id = "s-2", Type = "PATH", Label = "Path", Content = @"C:\Build\Packages\Release\WinUI3.msix", OrderIndex = 1 }
@@ -177,7 +177,7 @@ public sealed class JsonNotePersistenceService : INotePersistenceService
                 ColorTheme = "blue",
                 Category = "Dev",
                 IsPinned = false,
-                Snippets = new List<SnippetBoxModel>
+                Snippets = new System.Collections.ObjectModel.ObservableCollection<SnippetBoxModel>
                 {
                     new() { Id = "s-3", Type = "C#", Label = "C#", Content = "var presenter = OverlappedPresenter.Create();\npresenter.IsAlwaysOnTop = true;\npresenter.SetBorderAndTitleBar(true, true);", IsMultiline = true, OrderIndex = 0 }
                 }

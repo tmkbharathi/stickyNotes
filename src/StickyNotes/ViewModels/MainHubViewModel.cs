@@ -10,7 +10,7 @@ namespace StickyNotes.ViewModels;
 
 /// <summary>
 /// Main dashboard / hub ViewModel coordinating notes list, background update checks on startup,
-/// search, filter categories, and independent NoteWindow lifecycle.
+/// search, filter categories, color filtering, dynamic snippet management, and floating NoteWindow lifecycle.
 /// </summary>
 public sealed class MainHubViewModel : INotifyPropertyChanged
 {
@@ -25,7 +25,14 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
 
     private string _searchQuery = string.Empty;
     private string _currentFilter = "all";
+    private string _selectedColorFilter = string.Empty;
     private bool _isLoadingNotes = false;
+    private bool _isGridView = true;
+    private bool _isFloatingWindowVisible = false;
+    private NoteModel? _activeNote;
+    private string _saveStatusText = "Saved";
+    private bool _isSaving = false;
+    private System.Threading.Timer? _autoSaveTimer;
 
     public event PropertyChangedEventHandler? PropertyChanged;
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
@@ -43,10 +50,34 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
         UpdateVm = new UpdateViewModel(_updateService);
 
         NewNoteCommand = new AsyncRelayCommand(CreateNewNoteAsync);
-        DeleteNoteCommand = new AsyncRelayCommand(async () => { });
+        AddSnippetBoxCommand = new RelayCommand(AddSnippetBoxToActiveNote);
     }
 
     public string NotesCountText => $"{DisplayedNotes.Count} {(DisplayedNotes.Count == 1 ? "note" : "notes")}";
+    public int AllCount => AllNotes.Count(n => !n.IsDeleted);
+    public int PinnedCount => AllNotes.Count(n => n.IsPinned && !n.IsDeleted);
+    public int TrashCount => AllNotes.Count(n => n.IsDeleted);
+
+    public string CurrentCategoryTitle
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(_selectedColorFilter))
+                return $"{char.ToUpper(_selectedColorFilter[0])}{_selectedColorFilter[1..]} Notes";
+            return _currentFilter switch
+            {
+                "pinned" => "Pinned Notes",
+                "work" => "Work Notes",
+                "dev" => "Dev Notes",
+                "personal" => "Personal Notes",
+                "recent" => "Recent Notes",
+                "trash" => "Trash Notes",
+                _ => "All Sticky Notes"
+            };
+        }
+    }
+
+    public bool HasActiveFilter => _currentFilter != "all" || !string.IsNullOrEmpty(_selectedColorFilter);
 
     public string SearchQuery
     {
@@ -68,27 +99,79 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
         private set { _isLoadingNotes = value; OnPropertyChanged(); }
     }
 
-    public ICommand NewNoteCommand { get; }
-    public ICommand DeleteNoteCommand { get; }
+    public bool IsGridView
+    {
+        get => _isGridView;
+        set { if (_isGridView != value) { _isGridView = value; OnPropertyChanged(); } }
+    }
 
-    /// <summary>
-    /// FAST STARTUP WORKFLOW:
-    /// 1. Open application immediately
-    /// 2. Load notes immediately
-    /// 3. Start update check asynchronously in the background (non-blocking)
-    /// </summary>
+    public bool IsFloatingWindowVisible
+    {
+        get => _isFloatingWindowVisible;
+        set { if (_isFloatingWindowVisible != value) { _isFloatingWindowVisible = value; OnPropertyChanged(); } }
+    }
+
+    public NoteModel? ActiveNote
+    {
+        get => _activeNote;
+        set
+        {
+            if (_activeNote != value)
+            {
+                if (_activeNote != null)
+                {
+                    _activeNote.PropertyChanged -= OnActiveNotePropertyChanged;
+                }
+                _activeNote = value;
+                if (_activeNote != null)
+                {
+                    _activeNote.PropertyChanged += OnActiveNotePropertyChanged;
+                }
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ActiveNoteSnippetCountText));
+                OnPropertyChanged(nameof(ActiveNoteCharCountText));
+            }
+        }
+    }
+
+    public string SaveStatusText
+    {
+        get => _saveStatusText;
+        private set { _saveStatusText = value; OnPropertyChanged(); }
+    }
+
+    public bool IsSaving
+    {
+        get => _isSaving;
+        private set { _isSaving = value; OnPropertyChanged(); }
+    }
+
+    public string ActiveNoteSnippetCountText =>
+        $"{ActiveNote?.Snippets?.Count ?? 0} {((ActiveNote?.Snippets?.Count ?? 0) == 1 ? "snippet box" : "snippet boxes")}";
+
+    public string ActiveNoteCharCountText =>
+        $"{((ActiveNote?.Title?.Length ?? 0) + (ActiveNote?.Content?.Length ?? 0))} characters";
+
+    public ICommand NewNoteCommand { get; }
+    public ICommand AddSnippetBoxCommand { get; }
+
     public async Task InitializeAsync()
     {
         IsLoadingNotes = true;
         try
         {
-            // 1 & 2. Immediate notes retrieval
             var notes = await _notePersistence.LoadAllNotesAsync();
             AllNotes.Clear();
             foreach (var note in notes.Where(n => !n.IsDeleted))
             {
                 AllNotes.Add(note);
             }
+
+            if (AllNotes.Count > 0)
+            {
+                ActiveNote = AllNotes[0];
+            }
+
             ApplyFilterAndSearch();
         }
         finally
@@ -96,17 +179,96 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
             IsLoadingNotes = false;
         }
 
-        // 3. Background non-blocking update check
         var settings = _settingsService.GetUpdateSettings();
         if (settings.AutoCheckUpdates)
         {
             _ = Task.Run(async () =>
             {
-                // Give the UI a moment to complete first render smoothly
                 await Task.Delay(800);
                 await _updateService.CheckForUpdatesAsync(force: false);
             });
         }
+    }
+
+    public void OpenNoteInEditor(NoteModel note)
+    {
+        ActiveNote = note;
+        IsFloatingWindowVisible = true;
+    }
+
+    public void AddSnippetBoxToActiveNote()
+    {
+        if (ActiveNote == null) return;
+        var newBox = new SnippetBoxModel
+        {
+            Type = "CMD",
+            Label = "Command",
+            Content = "// Enter command or snippet here...",
+            OrderIndex = ActiveNote.Snippets.Count
+        };
+        newBox.PropertyChanged += (s, e) => TriggerAutoSave();
+        ActiveNote.Snippets.Add(newBox);
+        OnPropertyChanged(nameof(ActiveNoteSnippetCountText));
+        TriggerAutoSave();
+    }
+
+    public void RemoveSnippetBoxFromActiveNote(SnippetBoxModel snippet)
+    {
+        if (ActiveNote == null) return;
+        ActiveNote.Snippets.Remove(snippet);
+        OnPropertyChanged(nameof(ActiveNoteSnippetCountText));
+        TriggerAutoSave();
+    }
+
+    public void SetActiveNoteTheme(string colorTheme)
+    {
+        if (ActiveNote == null) return;
+        ActiveNote.ColorTheme = colorTheme;
+        TriggerAutoSave();
+    }
+
+    public void ToggleActiveNotePin()
+    {
+        if (ActiveNote == null) return;
+        ActiveNote.IsPinned = !ActiveNote.IsPinned;
+        TriggerAutoSave();
+        UpdateBadgeCounts();
+    }
+
+    public void ToggleActiveNoteAlwaysOnTop()
+    {
+        if (ActiveNote == null) return;
+        ActiveNote.IsAlwaysOnTop = !ActiveNote.IsAlwaysOnTop;
+        TriggerAutoSave();
+    }
+
+    private void OnActiveNotePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(ActiveNoteCharCountText));
+        TriggerAutoSave();
+    }
+
+    private void TriggerAutoSave()
+    {
+        if (ActiveNote == null) return;
+
+        IsSaving = true;
+        SaveStatusText = "Saving...";
+
+        _autoSaveTimer?.Dispose();
+        _autoSaveTimer = new System.Threading.Timer(async _ =>
+        {
+            if (ActiveNote != null)
+            {
+                await _notePersistence.SaveNoteAsync(ActiveNote);
+            }
+            App.CurrentAppSynchronizationContext?.Post(__ =>
+            {
+                IsSaving = false;
+                SaveStatusText = "Saved";
+                UpdateBadgeCounts();
+            }, null);
+        }, null, 500, Timeout.Infinite);
     }
 
     public async Task DeleteNoteAsync(NoteModel note)
@@ -114,7 +276,13 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
         note.IsDeleted = true;
         await _notePersistence.DeleteNoteAsync(note.Id);
         AllNotes.Remove(note);
+        if (ActiveNote == note)
+        {
+            ActiveNote = AllNotes.FirstOrDefault();
+            if (ActiveNote == null) IsFloatingWindowVisible = false;
+        }
         ApplyFilterAndSearch();
+        UpdateBadgeCounts();
     }
 
     public async Task SaveNoteAsync(NoteModel note)
@@ -122,6 +290,7 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
         note.ModifiedAt = DateTimeOffset.UtcNow;
         await _notePersistence.SaveNoteAsync(note);
         ApplyFilterAndSearch();
+        UpdateBadgeCounts();
     }
 
     public async Task TogglePinAsync(NoteModel note)
@@ -129,31 +298,50 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
         note.IsPinned = !note.IsPinned;
         await _notePersistence.SaveNoteAsync(note);
         ApplyFilterAndSearch();
+        UpdateBadgeCounts();
     }
 
     public async Task CreateNewNoteAsync()
     {
         var newNote = new NoteModel
         {
-            Title = "New Note",
-            Content = "Type your note description or instructions here...",
+            Title = "Untitled Note",
+            Content = "Type note text or instructions...",
             ColorTheme = "yellow",
             Category = "Work",
-            Snippets = new List<SnippetBoxModel>
+            Snippets = new ObservableCollection<SnippetBoxModel>
             {
-                new() { Type = "CMD", Label = "Build Command", Content = "dotnet build" }
+                new() { Type = "CMD", Label = "CMD", Content = "dotnet run" }
             }
         };
 
         await _notePersistence.SaveNoteAsync(newNote);
         AllNotes.Insert(0, newNote);
+        ActiveNote = newNote;
+        IsFloatingWindowVisible = true;
         ApplyFilterAndSearch();
+        UpdateBadgeCounts();
     }
 
     public void FilterCategory(string category)
     {
         _currentFilter = category.ToLowerInvariant();
+        _selectedColorFilter = string.Empty;
         ApplyFilterAndSearch();
+    }
+
+    public void FilterByColor(string color)
+    {
+        _selectedColorFilter = color.ToLowerInvariant();
+        ApplyFilterAndSearch();
+    }
+
+    private void UpdateBadgeCounts()
+    {
+        OnPropertyChanged(nameof(AllCount));
+        OnPropertyChanged(nameof(PinnedCount));
+        OnPropertyChanged(nameof(TrashCount));
+        OnPropertyChanged(nameof(NotesCountText));
     }
 
     private void ApplyFilterAndSearch()
@@ -163,6 +351,9 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
 
         var filtered = AllNotes.Where(n =>
         {
+            if (!string.IsNullOrEmpty(_selectedColorFilter) && !n.ColorTheme.Equals(_selectedColorFilter, StringComparison.OrdinalIgnoreCase))
+                return false;
+
             if (_currentFilter == "pinned" && !n.IsPinned) return false;
             if (_currentFilter == "work" && !n.Category.Equals("Work", StringComparison.OrdinalIgnoreCase)) return false;
             if (_currentFilter == "dev" && !n.Category.Equals("Dev", StringComparison.OrdinalIgnoreCase)) return false;
@@ -182,6 +373,9 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
         {
             DisplayedNotes.Add(item);
         }
-        OnPropertyChanged(nameof(NotesCountText));
+
+        OnPropertyChanged(nameof(CurrentCategoryTitle));
+        OnPropertyChanged(nameof(HasActiveFilter));
+        UpdateBadgeCounts();
     }
 }

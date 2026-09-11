@@ -7,6 +7,43 @@
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Theme Color Brushes matching index.html tokens -->
+            <SolidColorBrush x:Key="NoteYellowBgBrush" Color="#292416" />
+            <SolidColorBrush x:Key="NoteYellowBorderBrush" Color="#5A4822" />
+            <SolidColorBrush x:Key="NoteYellowHeaderBrush" Color="#332D1C" />
+            <SolidColorBrush x:Key="NoteYellowAccentBrush" Color="#F5C542" />
+
+            <SolidColorBrush x:Key="NoteBlueBgBrush" Color="#132333" />
+            <SolidColorBrush x:Key="NoteBlueBorderBrush" Color="#254868" />
+            <SolidColorBrush x:Key="NoteBlueHeaderBrush" Color="#1A2F42" />
+            <SolidColorBrush x:Key="NoteBlueAccentBrush" Color="#60CDFF" />
+
+            <SolidColorBrush x:Key="NoteGreenBgBrush" Color="#14281F" />
+            <SolidColorBrush x:Key="NoteGreenBorderBrush" Color="#27523F" />
+            <SolidColorBrush x:Key="NoteGreenHeaderBrush" Color="#1B3529" />
+            <SolidColorBrush x:Key="NoteGreenAccentBrush" Color="#6CCF8E" />
+
+            <SolidColorBrush x:Key="NotePinkBgBrush" Color="#2E1724" />
+            <SolidColorBrush x:Key="NotePinkBorderBrush" Color="#5D2F4B" />
+            <SolidColorBrush x:Key="NotePinkHeaderBrush" Color="#3D1F30" />
+            <SolidColorBrush x:Key="NotePinkAccentBrush" Color="#F48FB1" />
+
+            <SolidColorBrush x:Key="NotePurpleBgBrush" Color="#261933" />
+            <SolidColorBrush x:Key="NotePurpleBorderBrush" Color="#4F3369" />
+            <SolidColorBrush x:Key="NotePurpleHeaderBrush" Color="#332244" />
+            <SolidColorBrush x:Key="NotePurpleAccentBrush" Color="#CE93D8" />
+
+            <SolidColorBrush x:Key="NoteGrayBgBrush" Color="#202022" />
+            <SolidColorBrush x:Key="NoteGrayBorderBrush" Color="#3D3D42" />
+            <SolidColorBrush x:Key="NoteGrayHeaderBrush" Color="#28282B" />
+            <SolidColorBrush x:Key="NoteGrayAccentBrush" Color="#D2D2D7" />
+
+            <SolidColorBrush x:Key="SnippetBoxBgBrush" Color="#0A0C10" Opacity="0.65" />
+            <SolidColorBrush x:Key="SnippetBoxBorderBrush" Color="#FFFFFF" Opacity="0.1" />
+
+            <!-- Font Family -->
+            <FontFamily x:Key="CodeFontFamily">Cascadia Code, Consolas, Courier New</FontFamily>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

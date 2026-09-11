@@ -29,4 +29,12 @@ public sealed partial class SettingsPage : Page
             ViewModel = vm;
         }
     }
+
+    private void OnBackClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        if (this.Frame?.CanGoBack == true)
+        {
+            this.Frame.GoBack();
+        }
+    }
 }
