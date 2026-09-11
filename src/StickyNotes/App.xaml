@@ -4,10 +4,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Application.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
-            </ResourceDictionary.MergedDictionaries>
-
             <!-- Theme Color Brushes matching index.html tokens -->
             <SolidColorBrush x:Key="NoteYellowBgBrush" Color="#292416" />
             <SolidColorBrush x:Key="NoteYellowBorderBrush" Color="#5A4822" />
