@@ -6,7 +6,7 @@
 [Setup]
 AppId={{D37F8A45-927A-4D3B-A938-D0E1F4C9827B}
 AppName={#MyAppName}
-AppVersion={#MyAppVersion}
+AppVersion=1.0.0
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
@@ -32,3 +32,4 @@ Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameter
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+
