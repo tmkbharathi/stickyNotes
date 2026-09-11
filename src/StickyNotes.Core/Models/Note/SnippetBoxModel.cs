@@ -19,6 +19,7 @@ public sealed class SnippetBoxModel : INotifyPropertyChanged
     private string _label = "Command";
     private string _content = string.Empty;
     private bool _isMultiline = false;
+    private bool _isMasked = false;
     private int _orderIndex = 0;
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -36,8 +37,32 @@ public sealed class SnippetBoxModel : INotifyPropertyChanged
     public string Type
     {
         get => _type;
-        set { if (_type != value) { _type = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayLabel)); } }
+        set
+        {
+            if (_type != value)
+            {
+                _type = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayLabel));
+                OnPropertyChanged(nameof(IsSeparator));
+                OnPropertyChanged(nameof(IsLabel));
+                OnPropertyChanged(nameof(IsDescription));
+                OnPropertyChanged(nameof(IsSnippet));
+            }
+        }
     }
+
+    [JsonIgnore]
+    public bool IsSeparator => string.Equals(_type, "SEPARATOR", StringComparison.OrdinalIgnoreCase);
+
+    [JsonIgnore]
+    public bool IsLabel => string.Equals(_type, "LABEL", StringComparison.OrdinalIgnoreCase);
+
+    [JsonIgnore]
+    public bool IsDescription => string.Equals(_type, "DESC", StringComparison.OrdinalIgnoreCase) || string.Equals(_type, "DESCRIPTION", StringComparison.OrdinalIgnoreCase);
+
+    [JsonIgnore]
+    public bool IsSnippet => !IsSeparator && !IsLabel && !IsDescription;
 
     [JsonPropertyName("label")]
     public string Label
@@ -53,8 +78,42 @@ public sealed class SnippetBoxModel : INotifyPropertyChanged
     public string Content
     {
         get => _content;
-        set { if (_content != value) { _content = value; OnPropertyChanged(); } }
+        set
+        {
+            if (_content != value)
+            {
+                _content = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayContent));
+            }
+        }
     }
+
+    [JsonPropertyName("isMasked")]
+    public bool IsMasked
+    {
+        get => _isMasked;
+        set
+        {
+            if (_isMasked != value)
+            {
+                _isMasked = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayContent));
+                OnPropertyChanged(nameof(MaskGlyph));
+                OnPropertyChanged(nameof(MaskToolTip));
+            }
+        }
+    }
+
+    [JsonIgnore]
+    public string DisplayContent => IsMasked ? new string('•', string.IsNullOrEmpty(_content) ? 8 : Math.Min(16, Math.Max(8, _content.Length))) : _content;
+
+    [JsonIgnore]
+    public string MaskGlyph => IsMasked ? "\uED1A" : "\uE7B3";
+
+    [JsonIgnore]
+    public string MaskToolTip => IsMasked ? "Unhide content" : "Hide content";
 
     [JsonPropertyName("isMultiline")]
     public bool IsMultiline

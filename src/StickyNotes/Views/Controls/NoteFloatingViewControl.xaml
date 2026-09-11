@@ -13,6 +13,8 @@
         <converters:NoteBackgroundConverter x:Key="NoteBgConv" />
         <converters:NoteHeaderConverter x:Key="NoteHdrConv" />
         <converters:NoteAccentConverter x:Key="NoteAccentConv" />
+        <converters:BoolToIntConverter x:Key="BoolToIntConv" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisConv" />
     </UserControl.Resources>
 
     <Grid Background="{x:Bind Note.ColorTheme, Mode=OneWay, Converter={StaticResource NoteBgConv}}">
@@ -80,56 +82,103 @@
         <!-- Read-Only Presentation Body -->
         <ScrollViewer Grid.Row="1" Padding="14,10" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="8" VerticalAlignment="Top">
-                <!-- Title (Read-Only) -->
-                <TextBlock
-                    Text="{x:Bind Note.DisplayTitle, Mode=OneWay}"
-                    FontWeight="SemiBold"
-                    FontSize="14.5"
-                    Foreground="White"
-                    TextWrapping="Wrap"
-                    IsTextSelectionEnabled="True" />
+                <!-- Title & Description Container (Supports Dynamic Reordering & Complete Hiding) -->
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                <!-- Note Body (Read-Only) -->
-                <TextBlock
-                    Text="{x:Bind Note.Content, Mode=OneWay}"
-                    FontSize="12"
-                    Foreground="#DDDDDD"
-                    TextWrapping="Wrap"
-                    IsTextSelectionEnabled="True"
-                    LineHeight="17" />
+                    <!-- Title (Read-Only, Completely Collapsed when Hidden) -->
+                    <TextBlock
+                        Grid.Row="{x:Bind Note.IsContentFirst, Mode=OneWay, Converter={StaticResource BoolToIntConv}}"
+                        Text="{x:Bind Note.DisplayTitle, Mode=OneWay}"
+                        FontWeight="SemiBold"
+                        FontSize="14.5"
+                        Foreground="White"
+                        TextWrapping="Wrap"
+                        IsTextSelectionEnabled="True"
+                        Margin="0,0,0,4"
+                        Visibility="{x:Bind Note.IsTitleMasked, Mode=OneWay, Converter={StaticResource BoolToVisConv}, ConverterParameter='Invert'}" />
 
-                <!-- Copyable Blocks (Read-Only Content with top-right animated Copy icon) -->
+                    <!-- Note Body (Read-Only, Completely Collapsed when Hidden) -->
+                    <TextBlock
+                        Grid.Row="{x:Bind Note.IsContentFirst, Mode=OneWay, Converter={StaticResource BoolToIntConv}, ConverterParameter='Invert'}"
+                        Text="{x:Bind Note.Content, Mode=OneWay}"
+                        FontSize="12"
+                        Foreground="#DDDDDD"
+                        TextWrapping="Wrap"
+                        IsTextSelectionEnabled="True"
+                        LineHeight="17"
+                        Margin="0,0,0,6"
+                        Visibility="{x:Bind Note.IsContentMasked, Mode=OneWay, Converter={StaticResource BoolToVisConv}, ConverterParameter='Invert'}" />
+                </Grid>
+
+                <!-- Dynamic Blocks (Snippets, Labels, Descriptions, Separators - Completely Collapsed when Hidden) -->
                 <ItemsControl ItemsSource="{x:Bind Note.Snippets, Mode=OneWay}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="models:SnippetBoxModel">
-                            <Border
-                                Margin="0,0,0,6"
-                                Background="#1A000000"
-                                BorderBrush="#15FFFFFF"
-                                BorderThickness="1"
-                                CornerRadius="4"
-                                Padding="8,6">
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <!-- Monospace Code / Command Text Content -->
-                                    <TextBlock
-                                        Grid.Column="0"
-                                        Text="{x:Bind Content, Mode=OneWay}"
-                                        FontFamily="{StaticResource CodeFontFamily}"
-                                        FontSize="11"
-                                        Foreground="#FFFAE0"
-                                        TextWrapping="Wrap"
-                                        IsTextSelectionEnabled="True"
-                                        VerticalAlignment="Center"
-                                        Margin="0,0,6,0" />
+                            <Grid Visibility="{x:Bind IsMasked, Mode=OneWay, Converter={StaticResource BoolToVisConv}, ConverterParameter='Invert'}">
+                                <!-- Separator View -->
+                                <Border
+                                    Height="1"
+                                    Background="#25FFFFFF"
+                                    Margin="0,4,0,6"
+                                    Visibility="{x:Bind IsSeparator, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" />
 
-                                    <!-- Top-Right Inside-Block Icon-Only Copy Button -->
-                                    <controls:CopyIconButton
-                                        Grid.Column="1"
-                                        TextToCopy="{x:Bind Content, Mode=OneWay}"
-                                        VerticalAlignment="Top"
-                                        HorizontalAlignment="Right" />
-                                </Grid>
-                            </Border>
+                                <!-- Label View -->
+                                <TextBlock
+                                    Text="{x:Bind Content, Mode=OneWay}"
+                                    FontWeight="SemiBold"
+                                    FontSize="13"
+                                    Foreground="White"
+                                    TextWrapping="Wrap"
+                                    IsTextSelectionEnabled="True"
+                                    Margin="0,2,0,4"
+                                    Visibility="{x:Bind IsLabel, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" />
+
+                                <!-- Description View -->
+                                <TextBlock
+                                    Text="{x:Bind Content, Mode=OneWay}"
+                                    FontSize="12"
+                                    Foreground="#DDDDDD"
+                                    TextWrapping="Wrap"
+                                    IsTextSelectionEnabled="True"
+                                    LineHeight="17"
+                                    Margin="0,2,0,6"
+                                    Visibility="{x:Bind IsDescription, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" />
+
+                                <!-- Snippet Box View -->
+                                <Border
+                                    Margin="0,0,0,6"
+                                    Background="#1A000000"
+                                    BorderBrush="#15FFFFFF"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    Padding="8,6"
+                                    Visibility="{x:Bind IsSnippet, Mode=OneWay, Converter={StaticResource BoolToVisConv}}">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <!-- Monospace Code / Command Text Content -->
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Text="{x:Bind Content, Mode=OneWay}"
+                                            FontFamily="{StaticResource CodeFontFamily}"
+                                            FontSize="11"
+                                            Foreground="#FFFAE0"
+                                            TextWrapping="Wrap"
+                                            IsTextSelectionEnabled="True"
+                                            VerticalAlignment="Center"
+                                            Margin="0,0,6,0" />
+
+                                        <!-- Top-Right Inside-Block Icon-Only Copy Button -->
+                                        <controls:CopyIconButton
+                                            Grid.Column="1"
+                                            TextToCopy="{x:Bind Content, Mode=OneWay}"
+                                            VerticalAlignment="Top"
+                                            HorizontalAlignment="Right" />
+                                    </Grid>
+                                </Border>
+                            </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

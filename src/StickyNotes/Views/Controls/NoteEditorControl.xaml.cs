@@ -93,6 +93,7 @@ public sealed partial class NoteEditorControl : UserControl
     {
         if (Note == null) return;
         Note.IsPinned = !Note.IsPinned;
+        Note.IsAlwaysOnTop = Note.IsPinned;
         TriggerAutoSave();
     }
 
@@ -116,7 +117,46 @@ public sealed partial class NoteEditorControl : UserControl
         {
             Type = "CMD",
             Label = "Snippet",
-            Content = "// Enter command or snippet...",
+            Content = string.Empty,
+            OrderIndex = Note.Snippets.Count
+        });
+        TriggerAutoSave();
+    }
+
+    private void OnAddLabelBlockClick(object sender, RoutedEventArgs e)
+    {
+        if (Note == null) return;
+        Note.Snippets.Add(new SnippetBoxModel
+        {
+            Type = "LABEL",
+            Label = "Label",
+            Content = string.Empty,
+            OrderIndex = Note.Snippets.Count
+        });
+        TriggerAutoSave();
+    }
+
+    private void OnAddDescriptionBlockClick(object sender, RoutedEventArgs e)
+    {
+        if (Note == null) return;
+        Note.Snippets.Add(new SnippetBoxModel
+        {
+            Type = "DESC",
+            Label = "Description",
+            Content = string.Empty,
+            OrderIndex = Note.Snippets.Count
+        });
+        TriggerAutoSave();
+    }
+
+    private void OnAddSeparatorBlockClick(object sender, RoutedEventArgs e)
+    {
+        if (Note == null) return;
+        Note.Snippets.Add(new SnippetBoxModel
+        {
+            Type = "SEPARATOR",
+            Label = "Separator",
+            Content = "---",
             OrderIndex = Note.Snippets.Count
         });
         TriggerAutoSave();
@@ -127,8 +167,112 @@ public sealed partial class NoteEditorControl : UserControl
         if (sender is Button btn && btn.Tag is SnippetBoxModel snippet && Note != null)
         {
             Note.Snippets.Remove(snippet);
+            UpdateSnippetOrderIndices();
             TriggerAutoSave();
         }
+    }
+
+    private void OnSnippetMoveUpClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is SnippetBoxModel snippet && Note != null)
+        {
+            var index = Note.Snippets.IndexOf(snippet);
+            if (index > 0)
+            {
+                Note.Snippets.Move(index, index - 1);
+                UpdateSnippetOrderIndices();
+                TriggerAutoSave();
+            }
+        }
+    }
+
+    private void OnSnippetMoveDownClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is SnippetBoxModel snippet && Note != null)
+        {
+            var index = Note.Snippets.IndexOf(snippet);
+            if (index >= 0 && index < Note.Snippets.Count - 1)
+            {
+                Note.Snippets.Move(index, index + 1);
+                UpdateSnippetOrderIndices();
+                TriggerAutoSave();
+            }
+        }
+    }
+
+    private void UpdateSnippetOrderIndices()
+    {
+        if (Note == null) return;
+        for (int i = 0; i < Note.Snippets.Count; i++)
+        {
+            Note.Snippets[i].OrderIndex = i;
+        }
+    }
+
+    private void OnSnippetToggleMaskClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is SnippetBoxModel snippet)
+        {
+            snippet.IsMasked = !snippet.IsMasked;
+            TriggerAutoSave();
+        }
+    }
+
+    private void OnSnippetPasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (sender is PasswordBox pb && pb.Tag is SnippetBoxModel snippet)
+        {
+            if (snippet.Content != pb.Password)
+            {
+                snippet.Content = pb.Password;
+                TriggerAutoSave();
+            }
+        }
+    }
+
+    private void OnToggleTitleMaskClick(object sender, RoutedEventArgs e)
+    {
+        if (Note == null) return;
+        Note.IsTitleMasked = !Note.IsTitleMasked;
+        TriggerAutoSave();
+    }
+
+    private void OnToggleContentMaskClick(object sender, RoutedEventArgs e)
+    {
+        if (Note == null) return;
+        Note.IsContentMasked = !Note.IsContentMasked;
+        TriggerAutoSave();
+    }
+
+    private void OnTitlePasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (sender is PasswordBox pb && Note != null)
+        {
+            if (Note.Title != pb.Password)
+            {
+                Note.Title = pb.Password;
+                TriggerAutoSave();
+            }
+        }
+    }
+
+    private void OnContentPasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (sender is PasswordBox pb && Note != null)
+        {
+            if (Note.Content != pb.Password)
+            {
+                Note.Content = pb.Password;
+                TriggerAutoSave();
+            }
+        }
+    }
+
+    private void OnSwapTitleAndContentClick(object sender, RoutedEventArgs e)
+    {
+        if (Note == null) return;
+        Note.IsContentFirst = !Note.IsContentFirst;
+        TriggerAutoSave();
     }
 
     private void OnColorSelectClick(object sender, RoutedEventArgs e)
@@ -158,26 +302,6 @@ public sealed partial class NoteEditorControl : UserControl
                 });
             }
         }
-    }
-
-    private void OnCopyAllClick(object sender, RoutedEventArgs e)
-    {
-        if (Note == null) return;
-        var text = $"{Note.Title}\n\n{Note.Content}";
-        if (Note.Snippets.Count > 0)
-        {
-            text += "\n\n-- Snippets --\n" + string.Join("\n\n", Note.Snippets.Select(s => $"[{s.Type} - {s.Label}]\n{s.Content}"));
-        }
-
-        var dataPackage = new DataPackage();
-        dataPackage.SetText(text);
-        Clipboard.SetContent(dataPackage);
-
-        CopyAllText.Text = "Copied!";
-        Task.Delay(1500).ContinueWith(_ =>
-        {
-            App.CurrentAppSynchronizationContext?.Post(__ => CopyAllText.Text = "Copy all blocks", null);
-        });
     }
 
     public void FocusTitle()

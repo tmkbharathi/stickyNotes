@@ -13,9 +13,12 @@ public sealed class NoteModel : INotifyPropertyChanged
     private string _id = Guid.NewGuid().ToString("N");
     private string _title = "Untitled Note";
     private string _content = string.Empty;
+    private bool _isTitleMasked = false;
+    private bool _isContentMasked = false;
+    private bool _isContentFirst = false;
     private string _colorTheme = "yellow";
     private string _category = "Work";
-    private bool _isPinned = false;
+    private bool _isPinned = true;
     private bool _isAlwaysOnTop = true;
     private bool _isDeleted = false;
     private bool _isOpenInWindow = false;
@@ -53,15 +56,100 @@ public sealed class NoteModel : INotifyPropertyChanged
         }
     }
 
+    [JsonPropertyName("isTitleMasked")]
+    public bool IsTitleMasked
+    {
+        get => _isTitleMasked;
+        set
+        {
+            if (_isTitleMasked != value)
+            {
+                _isTitleMasked = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayTitle));
+                OnPropertyChanged(nameof(TitleMaskGlyph));
+                OnPropertyChanged(nameof(TitleMaskToolTip));
+            }
+        }
+    }
+
     [JsonIgnore]
-    public string DisplayTitle => string.IsNullOrWhiteSpace(_title) ? "Untitled Note" : _title;
+    public string DisplayTitle
+    {
+        get
+        {
+            if (IsTitleMasked) return new string('•', string.IsNullOrWhiteSpace(_title) ? 8 : Math.Min(16, Math.Max(8, _title.Length)));
+            return string.IsNullOrWhiteSpace(_title) ? "Untitled Note" : _title;
+        }
+    }
+
+    [JsonIgnore]
+    public string TitleMaskGlyph => IsTitleMasked ? "\uED1A" : "\uE7B3";
+
+    [JsonIgnore]
+    public string TitleMaskToolTip => IsTitleMasked ? "Unhide title" : "Hide title";
 
     [JsonPropertyName("content")]
     public string Content
     {
         get => _content;
-        set { if (_content != value) { _content = value; OnPropertyChanged(); } }
+        set
+        {
+            if (_content != value)
+            {
+                _content = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayContent));
+            }
+        }
     }
+
+    [JsonPropertyName("isContentMasked")]
+    public bool IsContentMasked
+    {
+        get => _isContentMasked;
+        set
+        {
+            if (_isContentMasked != value)
+            {
+                _isContentMasked = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayContent));
+                OnPropertyChanged(nameof(ContentMaskGlyph));
+                OnPropertyChanged(nameof(ContentMaskToolTip));
+            }
+        }
+    }
+
+    [JsonPropertyName("isContentFirst")]
+    public bool IsContentFirst
+    {
+        get => _isContentFirst;
+        set
+        {
+            if (_isContentFirst != value)
+            {
+                _isContentFirst = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    [JsonIgnore]
+    public string DisplayContent
+    {
+        get
+        {
+            if (IsContentMasked) return new string('•', string.IsNullOrWhiteSpace(_content) ? 8 : Math.Min(24, Math.Max(8, _content.Length)));
+            return _content;
+        }
+    }
+
+    [JsonIgnore]
+    public string ContentMaskGlyph => IsContentMasked ? "\uED1A" : "\uE7B3";
+
+    [JsonIgnore]
+    public string ContentMaskToolTip => IsContentMasked ? "Unhide description" : "Hide description";
 
     [JsonPropertyName("colorTheme")]
     public string ColorTheme

@@ -4,7 +4,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:models="using:StickyNotes.Core.Models.Update"
     mc:Ignorable="d">
 
     <Grid Background="#101112">
@@ -21,21 +20,16 @@
                 Padding="24"
                 Spacing="24">
                 <!-- Header -->
-                <Grid ColumnDefinitions="Auto,*">
-                    <Button Click="OnBackClick" Width="36" Height="36" Padding="0" Background="Transparent" BorderThickness="0" Margin="0,0,12,0" ToolTipService.ToolTip="Back to Notes">
-                        <FontIcon Glyph="&#xE72B;" FontSize="14" Foreground="White" />
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <Button Click="OnBackClick" Width="32" Height="32" Padding="0" Background="Transparent" BorderThickness="0" CornerRadius="4" ToolTipService.ToolTip="Back to Notes">
+                        <FontIcon Glyph="&#xE72B;" FontSize="13" Foreground="White" />
                     </Button>
-                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                        <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}" />
-                        <TextBlock Text="Manage note preferences, sync, and application updates."
-                                   Style="{StaticResource BodyTextBlockStyle}"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    </StackPanel>
-                </Grid>
+                    <TextBlock Text="Settings" FontSize="18" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center" />
+                </StackPanel>
 
                 <!-- Updates Section Card -->
-                <StackPanel Spacing="16" VerticalAlignment="Top">
-                    <TextBlock Text="Updates" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <StackPanel Spacing="12" VerticalAlignment="Top">
+                    <TextBlock Text="Updates" FontSize="14" FontWeight="SemiBold" Foreground="#CCCCCC" />
 
                     <Border
                         Background="{ThemeResource LayerFillColorDefaultBrush}"
@@ -83,20 +77,6 @@
                                 Header="Install updates automatically when safe"
                                 IsOn="{x:Bind ViewModel.AutoInstallWhenSafe, Mode=TwoWay}" />
 
-                            <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
-
-                            <!-- Update Channel Selector -->
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="Update Channel" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <TextBlock Text="Select between verified production releases or early preview builds."
-                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                <ComboBox
-                                    Margin="0,4,0,0"
-                                    Width="200"
-                                    ItemsSource="{x:Bind ViewModel.AvailableChannels, Mode=OneWay}"
-                                    SelectedIndex="{x:Bind ViewModel.SelectedChannelIndex, Mode=TwoWay}" />
-                            </StackPanel>
                         </StackPanel>
                     </Border>
                 </StackPanel>

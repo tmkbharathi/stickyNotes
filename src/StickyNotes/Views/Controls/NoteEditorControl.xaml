@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:converters="using:StickyNotes.Views.Converters"
+    xmlns:controls="using:StickyNotes.Views.Controls"
     xmlns:models="using:StickyNotes.Core.Models.Note"
     mc:Ignorable="d">
 
@@ -14,6 +15,8 @@
         <converters:NoteHeaderConverter x:Key="NoteHdrConv" />
         <converters:NoteAccentConverter x:Key="NoteAccentConv" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisConv" />
+        <converters:BoolToIntConverter x:Key="BoolToIntConv" />
+        <converters:BoolToReorderGlyphConverter x:Key="BoolToReorderGlyphConv" />
     </UserControl.Resources>
 
     <Grid Background="{x:Bind Note.ColorTheme, Mode=OneWay, Converter={StaticResource NoteBgConv}}">
@@ -75,13 +78,21 @@
                     <FontIcon Glyph="&#xE790;" FontSize="11" Foreground="#AAAAAA" />
                     <Button.Flyout>
                         <Flyout Placement="Bottom">
-                            <StackPanel Orientation="Horizontal" Spacing="8" Padding="4">
-                                <Button Click="OnColorSelectClick" Tag="yellow" Width="22" Height="22" CornerRadius="11" Background="#F5C542" BorderBrush="#F5C542" ToolTipService.ToolTip="Yellow" />
-                                <Button Click="OnColorSelectClick" Tag="blue" Width="22" Height="22" CornerRadius="11" Background="#60CDFF" BorderBrush="#60CDFF" ToolTipService.ToolTip="Blue" />
-                                <Button Click="OnColorSelectClick" Tag="green" Width="22" Height="22" CornerRadius="11" Background="#6CCF8E" BorderBrush="#6CCF8E" ToolTipService.ToolTip="Green" />
-                                <Button Click="OnColorSelectClick" Tag="pink" Width="22" Height="22" CornerRadius="11" Background="#F48FB1" BorderBrush="#F48FB1" ToolTipService.ToolTip="Pink" />
-                                <Button Click="OnColorSelectClick" Tag="purple" Width="22" Height="22" CornerRadius="11" Background="#CE93D8" BorderBrush="#CE93D8" ToolTipService.ToolTip="Purple" />
-                                <Button Click="OnColorSelectClick" Tag="gray" Width="22" Height="22" CornerRadius="11" Background="#888890" BorderBrush="#888890" ToolTipService.ToolTip="Gray" />
+                            <Flyout.FlyoutPresenterStyle>
+                                <Style TargetType="FlyoutPresenter">
+                                    <Setter Property="Padding" Value="8,6" />
+                                    <Setter Property="MinWidth" Value="0" />
+                                    <Setter Property="MinHeight" Value="0" />
+                                    <Setter Property="CornerRadius" Value="8" />
+                                </Style>
+                            </Flyout.FlyoutPresenterStyle>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Click="OnColorSelectClick" Tag="yellow" Width="22" Height="22" MinWidth="0" MinHeight="0" Padding="0" CornerRadius="11" Background="#F5C542" BorderBrush="#F5C542" ToolTipService.ToolTip="Yellow" />
+                                <Button Click="OnColorSelectClick" Tag="blue" Width="22" Height="22" MinWidth="0" MinHeight="0" Padding="0" CornerRadius="11" Background="#60CDFF" BorderBrush="#60CDFF" ToolTipService.ToolTip="Blue" />
+                                <Button Click="OnColorSelectClick" Tag="green" Width="22" Height="22" MinWidth="0" MinHeight="0" Padding="0" CornerRadius="11" Background="#6CCF8E" BorderBrush="#6CCF8E" ToolTipService.ToolTip="Green" />
+                                <Button Click="OnColorSelectClick" Tag="pink" Width="22" Height="22" MinWidth="0" MinHeight="0" Padding="0" CornerRadius="11" Background="#F48FB1" BorderBrush="#F48FB1" ToolTipService.ToolTip="Pink" />
+                                <Button Click="OnColorSelectClick" Tag="purple" Width="22" Height="22" MinWidth="0" MinHeight="0" Padding="0" CornerRadius="11" Background="#CE93D8" BorderBrush="#CE93D8" ToolTipService.ToolTip="Purple" />
+                                <Button Click="OnColorSelectClick" Tag="gray" Width="22" Height="22" MinWidth="0" MinHeight="0" Padding="0" CornerRadius="11" Background="#888890" BorderBrush="#888890" ToolTipService.ToolTip="Gray" />
                             </StackPanel>
                         </Flyout>
                     </Button.Flyout>
@@ -116,123 +127,244 @@
 
         <!-- Body: Compact Content-Driven Layout -->
         <ScrollViewer Grid.Row="1" Padding="14,12" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer.ContextFlyout>
+                <MenuFlyout>
+                    <MenuFlyoutItem Text="Add copyable box" Click="OnAddSnippetBoxClick">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE710;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem Text="Add label" Click="OnAddLabelBlockClick">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE8EC;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem Text="Add description" Click="OnAddDescriptionBlockClick">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE8BD;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem Text="Add separator" Click="OnAddSeparatorBlockClick">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE765;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutSeparator />
+                    <MenuFlyoutItem Text="Toggle Title visibility" Click="OnToggleTitleMaskClick">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE7B3;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem Text="Toggle Description visibility" Click="OnToggleContentMaskClick">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE7B3;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem Text="Swap Title / Description" Click="OnSwapTitleAndContentClick">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE8D8;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                </MenuFlyout>
+            </ScrollViewer.ContextFlyout>
             <StackPanel Spacing="4" VerticalAlignment="Top">
-                <!-- Title (Editable in Embedded Mode) -->
-                <TextBox
-                    x:Name="TitleTextBox"
-                    Text="{x:Bind Note.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                    PlaceholderText="Untitled Note"
-                    FontWeight="SemiBold"
-                    FontSize="14.5"
-                    Foreground="White"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Padding="0,2"
-                    TextChanged="OnContentChanged"
-                    Visibility="{x:Bind IsFloatingMode, Mode=OneWay, Converter={StaticResource BoolToVisConv}, ConverterParameter='Invert'}" />
+                <!-- Title & Description Container (Supports Dynamic Reordering & Masking) -->
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                <!-- Title (Read-only in Floating Mode) -->
-                <TextBlock
-                    Text="{x:Bind Note.DisplayTitle, Mode=OneWay}"
-                    FontWeight="SemiBold"
-                    FontSize="14.5"
-                    Foreground="White"
-                    TextWrapping="Wrap"
-                    IsTextSelectionEnabled="True"
-                    Visibility="{x:Bind IsFloatingMode, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" />
+                    <!-- Title Row / Block -->
+                    <Grid Grid.Row="{x:Bind Note.IsContentFirst, Mode=OneWay, Converter={StaticResource BoolToIntConv}}" Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-                <!-- Content (Editable in Embedded Mode) -->
-                <TextBox
-                    x:Name="ContentTextBox"
-                    Text="{x:Bind Note.Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                    PlaceholderText="Type note text or instructions..."
-                    AcceptsReturn="True"
-                    TextWrapping="Wrap"
-                    MinHeight="38"
-                    FontSize="12"
-                    Foreground="#DDDDDD"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Padding="0,2"
-                    Margin="0,0,0,2"
-                    TextChanged="OnContentChanged"
-                    Visibility="{x:Bind IsFloatingMode, Mode=OneWay, Converter={StaticResource BoolToVisConv}, ConverterParameter='Invert'}" />
+                        <!-- Title (Editable when unmasked) -->
+                        <TextBox
+                            Grid.Column="0"
+                            x:Name="TitleTextBox"
+                            Text="{x:Bind Note.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            PlaceholderText="Untitled Note"
+                            FontWeight="SemiBold"
+                            FontSize="14.5"
+                            Foreground="White"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="0,2"
+                            TextChanged="OnContentChanged"
+                            VerticalAlignment="Center"
+                            Visibility="{x:Bind Note.IsTitleMasked, Mode=OneWay, Converter={StaticResource BoolToVisConv}, ConverterParameter='Invert'}" />
 
-                <!-- Content (Read-only in Floating Mode) -->
-                <TextBlock
-                    Text="{x:Bind Note.Content, Mode=OneWay}"
-                    FontSize="12"
-                    Foreground="#CCCCCC"
-                    TextWrapping="Wrap"
-                    IsTextSelectionEnabled="True"
-                    LineHeight="17"
-                    Margin="0,0,0,2"
-                    Visibility="{x:Bind IsFloatingMode, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" />
+                        <!-- Title (Editable PasswordBox when masked) -->
+                        <PasswordBox
+                            Grid.Column="0"
+                            Password="{x:Bind Note.Title, Mode=OneWay}"
+                            PasswordChanged="OnTitlePasswordChanged"
+                            PlaceholderText="Enter secret title..."
+                            FontWeight="SemiBold"
+                            FontSize="14.5"
+                            Foreground="White"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="0,2"
+                            PasswordRevealMode="Hidden"
+                            VerticalAlignment="Center"
+                            Visibility="{x:Bind Note.IsTitleMasked, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" />
+
+                        <!-- Title Hide/Unhide Toggle Button -->
+                        <Button
+                            Grid.Column="1"
+                            Click="OnToggleTitleMaskClick"
+                            Width="20"
+                            Height="20"
+                            Padding="0"
+                            Margin="4,0,0,0"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            VerticalAlignment="Center"
+                            ToolTipService.ToolTip="{x:Bind Note.TitleMaskToolTip, Mode=OneWay}">
+                            <FontIcon Glyph="{x:Bind Note.TitleMaskGlyph, Mode=OneWay}" FontSize="9" Foreground="#AAAAAA" />
+                        </Button>
+
+                        <!-- Title Reorder Button -->
+                        <Button
+                            Grid.Column="2"
+                            Click="OnSwapTitleAndContentClick"
+                            Width="20"
+                            Height="20"
+                            Padding="0"
+                            Margin="1,0,0,0"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            VerticalAlignment="Center"
+                            ToolTipService.ToolTip="Reorder Title / Description">
+                            <FontIcon Glyph="{x:Bind Note.IsContentFirst, Mode=OneWay, Converter={StaticResource BoolToReorderGlyphConv}, ConverterParameter='Title'}" FontSize="8.5" Foreground="#AAAAAA" />
+                        </Button>
+                    </Grid>
+
+                    <!-- Description Row / Block -->
+                    <Grid Grid.Row="{x:Bind Note.IsContentFirst, Mode=OneWay, Converter={StaticResource BoolToIntConv}, ConverterParameter='Invert'}" Margin="0,0,0,2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Content (Editable when unmasked) -->
+                        <TextBox
+                            Grid.Column="0"
+                            x:Name="ContentTextBox"
+                            Text="{x:Bind Note.Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            PlaceholderText="Type note text or instructions..."
+                            AcceptsReturn="True"
+                            TextWrapping="Wrap"
+                            MinHeight="38"
+                            FontSize="12"
+                            Foreground="#DDDDDD"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="0,2"
+                            TextChanged="OnContentChanged"
+                            VerticalAlignment="Center"
+                            Visibility="{x:Bind Note.IsContentMasked, Mode=OneWay, Converter={StaticResource BoolToVisConv}, ConverterParameter='Invert'}" />
+
+                        <!-- Content (Editable PasswordBox when masked) -->
+                        <PasswordBox
+                            Grid.Column="0"
+                            Password="{x:Bind Note.Content, Mode=OneWay}"
+                            PasswordChanged="OnContentPasswordChanged"
+                            PlaceholderText="Enter secret description..."
+                            FontSize="12"
+                            Foreground="#DDDDDD"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="0,2"
+                            PasswordRevealMode="Hidden"
+                            VerticalAlignment="Center"
+                            Visibility="{x:Bind Note.IsContentMasked, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" />
+
+                        <!-- Content Hide/Unhide Toggle Button -->
+                        <Button
+                            Grid.Column="1"
+                            Click="OnToggleContentMaskClick"
+                            Width="20"
+                            Height="20"
+                            Padding="0"
+                            Margin="4,0,0,0"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            VerticalAlignment="Center"
+                            ToolTipService.ToolTip="{x:Bind Note.ContentMaskToolTip, Mode=OneWay}">
+                            <FontIcon Glyph="{x:Bind Note.ContentMaskGlyph, Mode=OneWay}" FontSize="9" Foreground="#AAAAAA" />
+                        </Button>
+
+                        <!-- Content Reorder Button -->
+                        <Button
+                            Grid.Column="2"
+                            Click="OnSwapTitleAndContentClick"
+                            Width="20"
+                            Height="20"
+                            Padding="0"
+                            Margin="1,0,0,0"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            VerticalAlignment="Center"
+                            ToolTipService.ToolTip="Reorder Title / Description">
+                            <FontIcon Glyph="{x:Bind Note.IsContentFirst, Mode=OneWay, Converter={StaticResource BoolToReorderGlyphConv}, ConverterParameter='Content'}" FontSize="8.5" Foreground="#AAAAAA" />
+                        </Button>
+                    </Grid>
+                </Grid>
 
                 <!-- Section Divider -->
                 <Border Height="1" Background="#15FFFFFF" Margin="0,6,0,8" />
 
-                <!-- Copyable Blocks Section Header & Copy All Blocks -->
-                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,6">
-                    <TextBlock Grid.Column="0" Text="COPYABLE BLOCKS" FontSize="10" FontWeight="Bold" Foreground="#777777" VerticalAlignment="Center" />
-                    <Button Grid.Column="1" Click="OnCopyAllClick" Height="22" Padding="6,0" Background="#15FFFFFF" BorderThickness="0" CornerRadius="3" ToolTipService.ToolTip="Copy all blocks to clipboard">
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <FontIcon Glyph="&#xE8C8;" FontSize="9" />
-                            <TextBlock x:Name="CopyAllText" Text="Copy all blocks" FontSize="10" />
-                        </StackPanel>
-                    </Button>
-                </Grid>
-
-                <!-- Snippet Blocks List -->
+                <!-- Dynamic Blocks List (Snippets, Labels, Descriptions, Separators) -->
                 <ItemsControl ItemsSource="{x:Bind Note.Snippets, Mode=OneWay}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="models:SnippetBoxModel">
-                            <Border
-                                Margin="0,0,0,6"
-                                Background="{StaticResource SnippetBoxBgBrush}"
-                                BorderBrush="{StaticResource SnippetBoxBorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="5"
-                                Padding="8,6">
-                                <Grid ColumnDefinitions="*,Auto,Auto">
-                                    <!-- Editable Monospace Code / Command Text Area -->
-                                    <TextBox
-                                        Grid.Column="0"
-                                        Text="{x:Bind Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                        PlaceholderText="Enter command or snippet..."
-                                        FontFamily="{StaticResource CodeFontFamily}"
-                                        FontSize="11"
-                                        Foreground="#FFFAE0"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Padding="0"
-                                        AcceptsReturn="True"
-                                        TextWrapping="Wrap"
-                                        TextChanged="OnContentChanged"
-                                        VerticalAlignment="Center" />
-
-                                    <!-- 1-Click Copy Button -->
+                            <Grid Margin="0,0,0,6">
+                                <!-- 1. Separator Block -->
+                                <Grid Visibility="{x:Bind IsSeparator, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" Margin="0,4,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Height="1" Background="#30FFFFFF" VerticalAlignment="Center" Margin="0,0,8,0" />
                                     <Button
                                         Grid.Column="1"
-                                        Click="OnSnippetCopyClick"
-                                        Tag="{x:Bind Content, Mode=OneWay}"
-                                        Height="22"
-                                        Padding="6,0"
-                                        Margin="6,0,2,0"
-                                        Background="#20FFFFFF"
+                                        Click="OnSnippetMoveUpClick"
+                                        Tag="{x:Bind}"
+                                        Width="20"
+                                        Height="20"
+                                        Padding="0"
+                                        Background="Transparent"
                                         BorderThickness="0"
-                                        CornerRadius="3"
                                         VerticalAlignment="Center"
-                                        ToolTipService.ToolTip="Copy snippet">
-                                        <StackPanel Orientation="Horizontal" Spacing="3">
-                                            <FontIcon Glyph="&#xE8C8;" FontSize="9" />
-                                            <TextBlock Text="Copy" FontSize="9.5" />
-                                        </StackPanel>
+                                        ToolTipService.ToolTip="Move block up">
+                                        <FontIcon Glyph="&#xE70E;" FontSize="8.5" Foreground="#AAAAAA" />
                                     </Button>
-
-                                    <!-- Remove Snippet Button (only in edit mode) -->
                                     <Button
                                         Grid.Column="2"
+                                        Click="OnSnippetMoveDownClick"
+                                        Tag="{x:Bind}"
+                                        Width="20"
+                                        Height="20"
+                                        Padding="0"
+                                        Margin="1,0,2,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="Move block down">
+                                        <FontIcon Glyph="&#xE70D;" FontSize="8.5" Foreground="#AAAAAA" />
+                                    </Button>
+                                    <Button
+                                        Grid.Column="3"
                                         Click="OnSnippetRemoveClick"
                                         Tag="{x:Bind}"
                                         Width="22"
@@ -241,31 +373,318 @@
                                         Background="Transparent"
                                         BorderThickness="0"
                                         VerticalAlignment="Center"
-                                        ToolTipService.ToolTip="Remove block">
+                                        ToolTipService.ToolTip="Remove separator">
                                         <FontIcon Glyph="&#xE711;" FontSize="9" Foreground="#FF8888" />
                                     </Button>
                                 </Grid>
-                            </Border>
+
+                                <!-- 2. Label Block -->
+                                <Grid Visibility="{x:Bind IsLabel, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" Margin="0,2,0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox
+                                        Grid.Column="0"
+                                        Text="{x:Bind Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        PlaceholderText="Label heading..."
+                                        FontWeight="SemiBold"
+                                        FontSize="13.5"
+                                        Foreground="#FFFFFF"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="0,2"
+                                        TextChanged="OnContentChanged"
+                                        VerticalAlignment="Center"
+                                        Visibility="{x:Bind IsMasked, Mode=OneWay, Converter={StaticResource BoolToVisConv}, ConverterParameter='Invert'}" />
+                                    <PasswordBox
+                                        Grid.Column="0"
+                                        Password="{x:Bind Content, Mode=OneWay}"
+                                        PasswordChanged="OnSnippetPasswordChanged"
+                                        Tag="{x:Bind}"
+                                        PlaceholderText="Secret label..."
+                                        FontWeight="SemiBold"
+                                        FontSize="13.5"
+                                        Foreground="#FFFFFF"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="0,2"
+                                        PasswordRevealMode="Hidden"
+                                        VerticalAlignment="Center"
+                                        Visibility="{x:Bind IsMasked, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" />
+                                    <Button
+                                        Grid.Column="1"
+                                        Click="OnSnippetToggleMaskClick"
+                                        Tag="{x:Bind}"
+                                        Width="20"
+                                        Height="20"
+                                        Padding="0"
+                                        Margin="4,0,0,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="{x:Bind MaskToolTip, Mode=OneWay}">
+                                        <FontIcon Glyph="{x:Bind MaskGlyph, Mode=OneWay}" FontSize="9" Foreground="#AAAAAA" />
+                                    </Button>
+                                    <Button
+                                        Grid.Column="2"
+                                        Click="OnSnippetMoveUpClick"
+                                        Tag="{x:Bind}"
+                                        Width="20"
+                                        Height="20"
+                                        Padding="0"
+                                        Margin="1,0,0,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="Move block up">
+                                        <FontIcon Glyph="&#xE70E;" FontSize="8.5" Foreground="#AAAAAA" />
+                                    </Button>
+                                    <Button
+                                        Grid.Column="3"
+                                        Click="OnSnippetMoveDownClick"
+                                        Tag="{x:Bind}"
+                                        Width="20"
+                                        Height="20"
+                                        Padding="0"
+                                        Margin="0,0,2,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="Move block down">
+                                        <FontIcon Glyph="&#xE70D;" FontSize="8.5" Foreground="#AAAAAA" />
+                                    </Button>
+                                    <Button
+                                        Grid.Column="4"
+                                        Click="OnSnippetRemoveClick"
+                                        Tag="{x:Bind}"
+                                        Width="22"
+                                        Height="22"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="Remove label">
+                                        <FontIcon Glyph="&#xE711;" FontSize="9" Foreground="#FF8888" />
+                                    </Button>
+                                </Grid>
+
+                                <!-- 3. Description Block -->
+                                <Grid Visibility="{x:Bind IsDescription, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" Margin="0,2,0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox
+                                        Grid.Column="0"
+                                        Text="{x:Bind Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        PlaceholderText="Additional description or instructions..."
+                                        AcceptsReturn="True"
+                                        TextWrapping="Wrap"
+                                        MinHeight="36"
+                                        FontSize="12"
+                                        Foreground="#DDDDDD"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="0,2"
+                                        TextChanged="OnContentChanged"
+                                        VerticalAlignment="Center"
+                                        Visibility="{x:Bind IsMasked, Mode=OneWay, Converter={StaticResource BoolToVisConv}, ConverterParameter='Invert'}" />
+                                    <PasswordBox
+                                        Grid.Column="0"
+                                        Password="{x:Bind Content, Mode=OneWay}"
+                                        PasswordChanged="OnSnippetPasswordChanged"
+                                        Tag="{x:Bind}"
+                                        PlaceholderText="Secret description..."
+                                        FontSize="12"
+                                        Foreground="#DDDDDD"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="0,2"
+                                        PasswordRevealMode="Hidden"
+                                        VerticalAlignment="Center"
+                                        Visibility="{x:Bind IsMasked, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" />
+                                    <Button
+                                        Grid.Column="1"
+                                        Click="OnSnippetToggleMaskClick"
+                                        Tag="{x:Bind}"
+                                        Width="20"
+                                        Height="20"
+                                        Padding="0"
+                                        Margin="4,0,0,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="{x:Bind MaskToolTip, Mode=OneWay}">
+                                        <FontIcon Glyph="{x:Bind MaskGlyph, Mode=OneWay}" FontSize="9" Foreground="#AAAAAA" />
+                                    </Button>
+                                    <Button
+                                        Grid.Column="2"
+                                        Click="OnSnippetMoveUpClick"
+                                        Tag="{x:Bind}"
+                                        Width="20"
+                                        Height="20"
+                                        Padding="0"
+                                        Margin="1,0,0,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="Move block up">
+                                        <FontIcon Glyph="&#xE70E;" FontSize="8.5" Foreground="#AAAAAA" />
+                                    </Button>
+                                    <Button
+                                        Grid.Column="3"
+                                        Click="OnSnippetMoveDownClick"
+                                        Tag="{x:Bind}"
+                                        Width="20"
+                                        Height="20"
+                                        Padding="0"
+                                        Margin="0,0,2,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="Move block down">
+                                        <FontIcon Glyph="&#xE70D;" FontSize="8.5" Foreground="#AAAAAA" />
+                                    </Button>
+                                    <Button
+                                        Grid.Column="4"
+                                        Click="OnSnippetRemoveClick"
+                                        Tag="{x:Bind}"
+                                        Width="22"
+                                        Height="22"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="Remove description">
+                                        <FontIcon Glyph="&#xE711;" FontSize="9" Foreground="#FF8888" />
+                                    </Button>
+                                </Grid>
+
+                                <!-- 4. Copyable Snippet Box -->
+                                <Border
+                                    Visibility="{x:Bind IsSnippet, Mode=OneWay, Converter={StaticResource BoolToVisConv}}"
+                                    Background="{StaticResource SnippetBoxBgBrush}"
+                                    BorderBrush="{StaticResource SnippetBoxBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="5"
+                                    Padding="8,6">
+                                    <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto">
+                                        <!-- Monospace Code / Command Text Area (when unmasked) -->
+                                        <TextBox
+                                            Grid.Column="0"
+                                            Text="{x:Bind Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            PlaceholderText="Enter command or snippet..."
+                                            FontFamily="{StaticResource CodeFontFamily}"
+                                            FontSize="11"
+                                            Foreground="#FFFAE0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Padding="0"
+                                            AcceptsReturn="True"
+                                            TextWrapping="Wrap"
+                                            TextChanged="OnContentChanged"
+                                            VerticalAlignment="Center"
+                                            Visibility="{x:Bind IsMasked, Mode=OneWay, Converter={StaticResource BoolToVisConv}, ConverterParameter='Invert'}" />
+
+                                        <!-- Password Box (when masked) -->
+                                        <PasswordBox
+                                            Grid.Column="0"
+                                            Password="{x:Bind Content, Mode=OneWay}"
+                                            PasswordChanged="OnSnippetPasswordChanged"
+                                            Tag="{x:Bind}"
+                                            PlaceholderText="Enter secret snippet..."
+                                            FontFamily="{StaticResource CodeFontFamily}"
+                                            FontSize="11"
+                                            Foreground="#FFFAE0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Padding="0"
+                                            PasswordRevealMode="Hidden"
+                                            VerticalAlignment="Center"
+                                            Visibility="{x:Bind IsMasked, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" />
+
+                                        <!-- Hide / Unhide Toggle Button -->
+                                        <Button
+                                            Grid.Column="1"
+                                            Click="OnSnippetToggleMaskClick"
+                                            Tag="{x:Bind}"
+                                            Width="20"
+                                            Height="20"
+                                            Padding="0"
+                                            Margin="4,0,0,0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            VerticalAlignment="Center"
+                                            ToolTipService.ToolTip="{x:Bind MaskToolTip, Mode=OneWay}">
+                                            <FontIcon Glyph="{x:Bind MaskGlyph, Mode=OneWay}" FontSize="9" Foreground="#AAAAAA" />
+                                        </Button>
+
+                                        <!-- Move Up Button -->
+                                        <Button
+                                            Grid.Column="2"
+                                            Click="OnSnippetMoveUpClick"
+                                            Tag="{x:Bind}"
+                                            Width="20"
+                                            Height="20"
+                                            Padding="0"
+                                            Margin="1,0,0,0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            VerticalAlignment="Center"
+                                            ToolTipService.ToolTip="Move block up">
+                                            <FontIcon Glyph="&#xE70E;" FontSize="8.5" Foreground="#AAAAAA" />
+                                        </Button>
+
+                                        <!-- Move Down Button -->
+                                        <Button
+                                            Grid.Column="3"
+                                            Click="OnSnippetMoveDownClick"
+                                            Tag="{x:Bind}"
+                                            Width="20"
+                                            Height="20"
+                                            Padding="0"
+                                            Margin="0,0,2,0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            VerticalAlignment="Center"
+                                            ToolTipService.ToolTip="Move block down">
+                                            <FontIcon Glyph="&#xE70D;" FontSize="8.5" Foreground="#AAAAAA" />
+                                        </Button>
+
+                                        <!-- 1-Click Copy Button (Icon only) -->
+                                        <controls:CopyIconButton
+                                            Grid.Column="4"
+                                            TextToCopy="{x:Bind Content, Mode=OneWay}"
+                                            Margin="2,0,2,0"
+                                            VerticalAlignment="Center" />
+
+                                        <!-- Remove Block Button -->
+                                        <Button
+                                            Grid.Column="5"
+                                            Click="OnSnippetRemoveClick"
+                                            Tag="{x:Bind}"
+                                            Width="22"
+                                            Height="22"
+                                            Padding="0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            VerticalAlignment="Center"
+                                            ToolTipService.ToolTip="Remove block">
+                                            <FontIcon Glyph="&#xE711;" FontSize="9" Foreground="#FF8888" />
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-
-                <!-- + Add Copyable Box Button (Single Button at Bottom) -->
-                <Button
-                    Click="OnAddSnippetBoxClick"
-                    HorizontalAlignment="Stretch"
-                    Height="28"
-                    Background="#10000000"
-                    BorderBrush="#20FFFFFF"
-                    BorderThickness="1"
-                    CornerRadius="5"
-                    Margin="0,2,0,0"
-                    Visibility="{x:Bind IsFloatingMode, Mode=OneWay, Converter={StaticResource BoolToVisConv}, ConverterParameter='Invert'}">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
-                        <FontIcon Glyph="&#xE710;" FontSize="10" Foreground="#60CDFF" />
-                        <TextBlock Text="Add copyable box" FontSize="11" Foreground="#CCCCCC" />
-                    </StackPanel>
-                </Button>
             </StackPanel>
         </ScrollViewer>
     </Grid>

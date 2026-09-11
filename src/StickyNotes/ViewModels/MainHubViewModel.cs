@@ -72,10 +72,6 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
             return _currentFilter switch
             {
                 "pinned" => "Pinned Notes",
-                "work" => "Work Notes",
-                "dev" => "Dev Notes",
-                "personal" => "Personal Notes",
-                "recent" => "Recent Notes",
                 "trash" => "Trash Notes",
                 _ => "All Sticky Notes"
             };
@@ -301,6 +297,7 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
     public async Task TogglePinAsync(NoteModel note)
     {
         note.IsPinned = !note.IsPinned;
+        note.IsAlwaysOnTop = note.IsPinned;
         await _notePersistence.SaveNoteAsync(note);
         ApplyFilterAndSearch();
         UpdateBadgeCounts();
@@ -337,7 +334,14 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
 
     public void FilterByColor(string color)
     {
-        _selectedColorFilter = color.ToLowerInvariant();
+        if (_selectedColorFilter.Equals(color, StringComparison.OrdinalIgnoreCase))
+        {
+            _selectedColorFilter = string.Empty;
+        }
+        else
+        {
+            _selectedColorFilter = color.ToLowerInvariant();
+        }
         ApplyFilterAndSearch();
     }
 
@@ -360,9 +364,6 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
                 return false;
 
             if (_currentFilter == "pinned" && !n.IsPinned) return false;
-            if (_currentFilter == "work" && !n.Category.Equals("Work", StringComparison.OrdinalIgnoreCase)) return false;
-            if (_currentFilter == "dev" && !n.Category.Equals("Dev", StringComparison.OrdinalIgnoreCase)) return false;
-            if (_currentFilter == "personal" && !n.Category.Equals("Personal", StringComparison.OrdinalIgnoreCase)) return false;
             if (_currentFilter == "trash" && !n.IsDeleted) return false;
 
             if (string.IsNullOrEmpty(query)) return true;

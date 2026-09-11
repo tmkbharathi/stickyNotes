@@ -228,6 +228,9 @@ public sealed partial class MainWindow : Window
     public async void ExitApplication()
     {
         _isExplicitExit = true;
+        _trayManager?.RemoveTrayIcon();
+        _trayManager?.Dispose();
+        _trayManager = null;
 
         var mainPos = _appWindow?.Position;
         var mainSize = _appWindow?.Size;
@@ -241,9 +244,15 @@ public sealed partial class MainWindow : Window
             _geometryService.SetFloatingWindowVisibility(_floatingWindow.IsVisibleOnScreen, _floatingWindow.Note?.Id);
         }
 
-        _trayManager?.Dispose();
-        await _geometryService.FlushAsync();
-        await _notePersistence.FlushAllPendingAsync();
+        try
+        {
+            await _geometryService.FlushAsync();
+            await _notePersistence.FlushAllPendingAsync();
+        }
+        catch
+        {
+            // Ignore error during termination
+        }
 
         _floatingWindow?.Close();
         this.Close();

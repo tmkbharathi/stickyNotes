@@ -99,3 +99,41 @@ public sealed class BoolToVisibilityConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         throw new NotImplementedException();
 }
+
+public sealed class BoolToIntConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        if (value is bool b)
+        {
+            if (parameter is string p && p.Equals("Invert", StringComparison.OrdinalIgnoreCase))
+                return b ? 0 : 1;
+            return b ? 1 : 0;
+        }
+        return 0;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotImplementedException();
+}
+
+public sealed class BoolToReorderGlyphConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        var isContentFirst = value is bool b && b;
+        var section = parameter as string ?? "Title";
+
+        if (section.Equals("Title", StringComparison.OrdinalIgnoreCase))
+        {
+            return isContentFirst ? "\uE70E" : "\uE70D";
+        }
+        else
+        {
+            return isContentFirst ? "\uE70D" : "\uE70E";
+        }
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotImplementedException();
+}

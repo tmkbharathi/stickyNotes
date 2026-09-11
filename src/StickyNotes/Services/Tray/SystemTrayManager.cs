@@ -25,6 +25,7 @@ public sealed class SystemTrayManager : IDisposable
     private const uint WM_RBUTTONUP = 0x0205;
 
     private const uint TPM_RIGHTBUTTON = 0x0002;
+    private const uint TPM_BOTTOMALIGN = 0x0020;
     private const uint TPM_RETURNCMD = 0x0100;
 
     private const uint MF_STRING = 0x00000000;
@@ -219,28 +220,35 @@ public sealed class SystemTrayManager : IDisposable
             GetCursorPos(out var pt);
             SetForegroundWindow(_hostHwnd);
 
-            var cmd = TrackPopupMenuEx(hMenu, TPM_RIGHTBUTTON | TPM_RETURNCMD, pt.x, pt.y, _hostHwnd, IntPtr.Zero);
+            var cmd = TrackPopupMenuEx(hMenu, TPM_RIGHTBUTTON | TPM_BOTTOMALIGN | TPM_RETURNCMD, pt.x, pt.y, _hostHwnd, IntPtr.Zero);
             PostMessage(_hostHwnd, 0, IntPtr.Zero, IntPtr.Zero);
+
+            DestroyMenu(hMenu);
+            hMenu = IntPtr.Zero;
 
             switch (cmd)
             {
                 case (int)CMD_OPEN_MAIN:
-                    OnOpenMainWindowRequested?.Invoke();
+                    App.CurrentAppSynchronizationContext?.Post(_ => OnOpenMainWindowRequested?.Invoke(), null);
                     break;
                 case (int)CMD_SHOW_FLOATING:
-                    OnShowFloatingWindowRequested?.Invoke();
+                    App.CurrentAppSynchronizationContext?.Post(_ => OnShowFloatingWindowRequested?.Invoke(), null);
                     break;
                 case (int)CMD_HIDE_FLOATING:
-                    OnHideFloatingWindowRequested?.Invoke();
+                    App.CurrentAppSynchronizationContext?.Post(_ => OnHideFloatingWindowRequested?.Invoke(), null);
                     break;
                 case (int)CMD_EXIT:
-                    OnExitRequested?.Invoke();
+                    RemoveTrayIcon();
+                    App.CurrentAppSynchronizationContext?.Post(_ => OnExitRequested?.Invoke(), null);
                     break;
             }
         }
         finally
         {
-            DestroyMenu(hMenu);
+            if (hMenu != IntPtr.Zero)
+            {
+                DestroyMenu(hMenu);
+            }
         }
     }
 
