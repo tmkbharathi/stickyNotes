@@ -92,6 +92,12 @@ public sealed partial class MainWindow : Window
 
         Helpers.WindowMinSizeHelper.SetMinSize(this, minWidthDip: 880, minHeightDip: 560);
 
+        var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "appIcon.ico");
+        if (File.Exists(iconPath) && _appWindow != null)
+        {
+            _appWindow.SetIcon(iconPath);
+        }
+
         // Intercept close button to hide to tray
         if (_appWindow != null)
         {

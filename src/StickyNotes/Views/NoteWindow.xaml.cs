@@ -79,6 +79,12 @@ public sealed partial class NoteWindow : Window
 
         if (_appWindow != null)
         {
+            var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "appIcon.ico");
+            if (System.IO.File.Exists(iconPath))
+            {
+                _appWindow.SetIcon(iconPath);
+            }
+
             _presenter = _appWindow.Presenter as OverlappedPresenter;
             if (_presenter != null)
             {

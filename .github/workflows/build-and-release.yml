@@ -79,7 +79,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: StickyNotes-windows-x64
-          path: Output/StickyNotes-setup.exe
+          path: StickyNotes-setup.exe
 
   release:
     needs: build
