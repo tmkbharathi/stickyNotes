@@ -15,6 +15,40 @@ public partial class App : Application
     public App()
     {
         this.InitializeComponent();
+
+        this.UnhandledException += (s, e) =>
+        {
+            try
+            {
+                var storageDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "StickyNotes");
+                Directory.CreateDirectory(storageDir);
+                File.AppendAllText(Path.Combine(storageDir, "crash.log"), $"{DateTime.UtcNow:O} [WinUI UnhandledException] {e.Message}\n{e.Exception}\n\n");
+            }
+            catch { }
+        };
+
+        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+        {
+            try
+            {
+                var storageDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "StickyNotes");
+                Directory.CreateDirectory(storageDir);
+                File.AppendAllText(Path.Combine(storageDir, "crash.log"), $"{DateTime.UtcNow:O} [AppDomain UnhandledException] {e.ExceptionObject}\n\n");
+            }
+            catch { }
+        };
+
+        TaskScheduler.UnobservedTaskException += (s, e) =>
+        {
+            try
+            {
+                var storageDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "StickyNotes");
+                Directory.CreateDirectory(storageDir);
+                File.AppendAllText(Path.Combine(storageDir, "crash.log"), $"{DateTime.UtcNow:O} [UnobservedTaskException] {e.Exception}\n\n");
+            }
+            catch { }
+            e.SetObserved();
+        };
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)

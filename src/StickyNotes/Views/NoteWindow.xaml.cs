@@ -104,6 +104,7 @@ public sealed partial class NoteWindow : Window
 
     public void ShowAndFocus()
     {
+        this.Activate();
         if (_appWindow != null)
         {
             _appWindow.Show();

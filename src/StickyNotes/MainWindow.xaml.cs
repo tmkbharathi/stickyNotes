@@ -177,6 +177,7 @@ public sealed partial class MainWindow : Window
 
     public void ShowAndFocus()
     {
+        this.Activate();
         if (_appWindow != null)
         {
             _appWindow.Show();
