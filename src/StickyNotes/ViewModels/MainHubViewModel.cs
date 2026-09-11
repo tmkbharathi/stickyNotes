@@ -38,14 +38,19 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
+    private readonly IWindowGeometryService? _geometryService;
+    public IWindowGeometryService? GeometryService => _geometryService;
+
     public MainHubViewModel(
         INotePersistenceService notePersistence,
         IUpdateService updateService,
-        ISettingsService settingsService)
+        ISettingsService settingsService,
+        IWindowGeometryService? geometryService = null)
     {
         _notePersistence = notePersistence;
         _updateService = updateService;
         _settingsService = settingsService;
+        _geometryService = geometryService;
 
         UpdateVm = new UpdateViewModel(_updateService);
 
@@ -311,7 +316,7 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
             Category = "Work",
             Snippets = new ObservableCollection<SnippetBoxModel>
             {
-                new() { Type = "CMD", Label = "CMD", Content = "dotnet run" }
+                new() { Type = "CMD", Label = "Snippet", Content = "dotnet run" }
             }
         };
 

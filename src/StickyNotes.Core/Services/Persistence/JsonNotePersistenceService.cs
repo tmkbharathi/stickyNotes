@@ -165,8 +165,8 @@ public sealed class JsonNotePersistenceService : INotePersistenceService
                 IsOpenInWindow = true,
                 Snippets = new System.Collections.ObjectModel.ObservableCollection<SnippetBoxModel>
                 {
-                    new() { Id = "s-1", Type = "CMD", Label = "CMD", Content = "dotnet publish -c Release -r win-x64 --self-contained", OrderIndex = 0 },
-                    new() { Id = "s-2", Type = "PATH", Label = "Path", Content = @"C:\Build\Packages\Release\WinUI3.msix", OrderIndex = 1 }
+                    new() { Id = "s-1", Type = "CMD", Label = "Build Command", Content = "dotnet publish -c Release -r win-x64 --self-contained", OrderIndex = 0 },
+                    new() { Id = "s-2", Type = "PATH", Label = "Package Path", Content = @"C:\Build\Packages\Release\WinUI3.msix", OrderIndex = 1 }
                 }
             },
             new()
@@ -179,7 +179,7 @@ public sealed class JsonNotePersistenceService : INotePersistenceService
                 IsPinned = false,
                 Snippets = new System.Collections.ObjectModel.ObservableCollection<SnippetBoxModel>
                 {
-                    new() { Id = "s-3", Type = "C#", Label = "C#", Content = "var presenter = OverlappedPresenter.Create();\npresenter.IsAlwaysOnTop = true;\npresenter.SetBorderAndTitleBar(true, true);", IsMultiline = true, OrderIndex = 0 }
+                    new() { Id = "s-3", Type = "C#", Label = "Window Presenter", Content = "var presenter = OverlappedPresenter.Create();\npresenter.IsAlwaysOnTop = true;\npresenter.SetBorderAndTitleBar(true, true);", IsMultiline = true, OrderIndex = 0 }
                 }
             },
             new()

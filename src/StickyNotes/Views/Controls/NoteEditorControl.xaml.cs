@@ -14,16 +14,32 @@ public sealed partial class NoteEditorControl : UserControl
             typeof(NoteEditorControl),
             new PropertyMetadata(null, OnNoteChangedStatic));
 
+    public static readonly DependencyProperty IsFloatingModeProperty =
+        DependencyProperty.Register(
+            nameof(IsFloatingMode),
+            typeof(bool),
+            typeof(NoteEditorControl),
+            new PropertyMetadata(false, OnFloatingModeChangedStatic));
+
     public NoteModel? Note
     {
         get => (NoteModel?)GetValue(NoteProperty);
         set => SetValue(NoteProperty, value);
     }
 
+    public bool IsFloatingMode
+    {
+        get => (bool)GetValue(IsFloatingModeProperty);
+        set => SetValue(IsFloatingModeProperty, value);
+    }
+
     public UIElement TitleBarElement => HeaderBar;
 
     public event EventHandler? NewNoteRequested;
     public event EventHandler? PopoutRequested;
+    public event EventHandler? AttachRequested;
+    public event EventHandler? MinimizeRequested;
+    public event EventHandler? HeaderDragRequested;
     public event EventHandler<NoteModel>? DeleteRequested;
     public event EventHandler<NoteModel>? NoteSaved;
 
@@ -34,12 +50,38 @@ public sealed partial class NoteEditorControl : UserControl
         this.InitializeComponent();
     }
 
+    private void OnHeaderBarPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (IsFloatingMode)
+        {
+            HeaderDragRequested?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
     private static void OnNoteChangedStatic(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is NoteEditorControl ctrl)
         {
             ctrl.Bindings.Update();
         }
+    }
+
+    private static void OnFloatingModeChangedStatic(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is NoteEditorControl ctrl)
+        {
+            ctrl.Bindings.Update();
+        }
+    }
+
+    private void OnAttachClick(object sender, RoutedEventArgs e)
+    {
+        AttachRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void OnMinimizeClick(object sender, RoutedEventArgs e)
+    {
+        MinimizeRequested?.Invoke(this, EventArgs.Empty);
     }
 
     private void OnNewNoteClick(object sender, RoutedEventArgs e)
@@ -134,8 +176,14 @@ public sealed partial class NoteEditorControl : UserControl
         CopyAllText.Text = "Copied!";
         Task.Delay(1500).ContinueWith(_ =>
         {
-            App.CurrentAppSynchronizationContext?.Post(__ => CopyAllText.Text = "Copy all", null);
+            App.CurrentAppSynchronizationContext?.Post(__ => CopyAllText.Text = "Copy all blocks", null);
         });
+    }
+
+    public void FocusTitle()
+    {
+        TitleTextBox?.Focus(FocusState.Programmatic);
+        TitleTextBox?.SelectAll();
     }
 
     private void OnContentChanged(object sender, TextChangedEventArgs e)
@@ -146,16 +194,14 @@ public sealed partial class NoteEditorControl : UserControl
     private void TriggerAutoSave()
     {
         if (Note == null) return;
-        SaveStatusDot.Fill = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Orange);
-        SaveStatusLabel.Text = "Saving...";
+        if (SaveStatusLabel != null) SaveStatusLabel.Text = "Saving...";
 
         _debounceTimer?.Dispose();
         _debounceTimer = new System.Threading.Timer(_ =>
         {
             App.CurrentAppSynchronizationContext?.Post(__ =>
             {
-                SaveStatusDot.Fill = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 0x4A, 0xDE, 0x80));
-                SaveStatusLabel.Text = "Saved";
+                if (SaveStatusLabel != null) SaveStatusLabel.Text = "✓ Saved";
                 if (Note != null)
                 {
                     NoteSaved?.Invoke(this, Note);

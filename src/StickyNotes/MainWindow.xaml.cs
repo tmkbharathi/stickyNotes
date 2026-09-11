@@ -38,6 +38,7 @@ public sealed partial class MainWindow : Window
         _notePersistence = new JsonNotePersistenceService(storageDir, _logger);
         _windowStateManager = new WindowStateManager(storageDir, _logger);
         _lifecycleManager = new AppLifecycleManager(_logger);
+        var geometryService = new WindowGeometryService(storageDir, _logger);
 
         var httpClient = new HttpClient();
         var deploymentProvider = new MsixPackageManagerDeploymentProvider(httpClient, _logger);
@@ -52,9 +53,28 @@ public sealed partial class MainWindow : Window
 
         UpdateVm = new UpdateViewModel(_updateService);
         SettingsVm = new SettingsViewModel(_settingsService, _updateService);
-        HubViewModel = new MainHubViewModel(_notePersistence, _updateService, _settingsService);
+        HubViewModel = new MainHubViewModel(_notePersistence, _updateService, _settingsService, geometryService);
 
         UpdateBannerHost.Content = new Views.Controls.UpdateBannerControl { ViewModel = UpdateVm };
+
+        // Restore and track MainWindow geometry before display
+        var savedMainGeo = geometryService.GetMainWindowGeometry();
+        Helpers.WindowPlacementHelper.InitializeAndTrackWindow(
+            this,
+            savedMainGeo,
+            (x, y, w, h, isMax) =>
+            {
+                geometryService.SaveMainWindowGeometry(x, y, w, h, isMax);
+            },
+            defaultWidth: 1040,
+            defaultHeight: 700,
+            minWidth: 600,
+            minHeight: 400);
+
+        this.Closed += async (s, e) =>
+        {
+            await geometryService.FlushAsync();
+        };
 
         NavigateToNotes();
         _ = HubViewModel.InitializeAsync();
@@ -77,6 +97,7 @@ public sealed partial class MainWindow : Window
             var noteWin = new NoteWindow(
                 HubViewModel.ActiveNote,
                 _notePersistence,
+                HubViewModel.GeometryService,
                 onNoteUpdated: async _ => await HubViewModel.SaveNoteAsync(HubViewModel.ActiveNote),
                 onNewNoteRequested: async _ => await HubViewModel.CreateNewNoteAsync());
             noteWin.Activate();

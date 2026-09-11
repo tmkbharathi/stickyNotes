@@ -37,6 +37,7 @@ public sealed partial class NotesHubPage : Page
     {
         if (ViewModel == null) return;
         await ViewModel.CreateNewNoteAsync();
+        HubEditorControl.FocusTitle();
     }
 
     private async void OnSyncUpdatesClick(object sender, RoutedEventArgs e)
@@ -53,9 +54,20 @@ public sealed partial class NotesHubPage : Page
 
     private void OnOpenStandaloneWindowClick(object sender, RoutedEventArgs e)
     {
+        OpenActiveNoteInStandaloneWindow();
+    }
+
+    private void OnPopoutRequestedFromEditor(object? sender, EventArgs e)
+    {
+        OpenActiveNoteInStandaloneWindow();
+    }
+
+    private void OpenActiveNoteInStandaloneWindow()
+    {
         if (ViewModel?.ActiveNote == null) return;
         var noteWin = new NoteWindow(
             ViewModel.ActiveNote,
+            geometryService: ViewModel.GeometryService,
             onNoteUpdated: async _ => await ViewModel.SaveNoteAsync(ViewModel.ActiveNote),
             onNewNoteRequested: async _ => await ViewModel.CreateNewNoteAsync());
         noteWin.Activate();
@@ -131,6 +143,31 @@ public sealed partial class NotesHubPage : Page
         }
     }
 
+    private async void OnNewNoteRequestedFromEditor(object? sender, EventArgs e)
+    {
+        if (ViewModel != null)
+        {
+            await ViewModel.CreateNewNoteAsync();
+            HubEditorControl.FocusTitle();
+        }
+    }
+
+    private async void OnDeleteActiveNoteFromEditor(object? sender, NoteModel note)
+    {
+        if (ViewModel != null)
+        {
+            await ViewModel.DeleteNoteAsync(note);
+        }
+    }
+
+    private async void OnActiveNoteSavedFromEditor(object? sender, NoteModel note)
+    {
+        if (ViewModel != null)
+        {
+            await ViewModel.SaveNoteAsync(note);
+        }
+    }
+
     private void OnToggleActiveNotePinClick(object sender, RoutedEventArgs e)
     {
         ViewModel?.ToggleActiveNotePin();
@@ -142,59 +179,6 @@ public sealed partial class NotesHubPage : Page
         {
             await ViewModel.DeleteNoteAsync(ViewModel.ActiveNote);
         }
-    }
-
-    private void OnAddSnippetBoxToActiveClick(object sender, RoutedEventArgs e)
-    {
-        ViewModel?.AddSnippetBoxToActiveNote();
-    }
-
-    private void OnActiveSnippetCopyClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button btn && btn.Tag is string content && !string.IsNullOrEmpty(content))
-        {
-            var dataPackage = new DataPackage();
-            dataPackage.SetText(content);
-            Clipboard.SetContent(dataPackage);
-
-            if (btn.Content is StackPanel sp && sp.Children.Count >= 2 && sp.Children[1] is TextBlock tb)
-            {
-                var orig = tb.Text;
-                tb.Text = "Copied!";
-                Task.Delay(1500).ContinueWith(_ =>
-                {
-                    App.CurrentAppSynchronizationContext?.Post(__ => tb.Text = orig, null);
-                });
-            }
-        }
-    }
-
-    private void OnActiveSnippetRemoveClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button btn && btn.Tag is SnippetBoxModel snippet && ViewModel != null)
-        {
-            ViewModel.RemoveSnippetBoxFromActiveNote(snippet);
-        }
-    }
-
-    private void OnActiveColorSelectClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button btn && btn.Tag is string color && ViewModel != null)
-        {
-            ViewModel.SetActiveNoteTheme(color);
-        }
-    }
-
-    private void OnCopyActiveNoteAllClick(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel?.ActiveNote == null) return;
-        CopyNoteToClipboard(ViewModel.ActiveNote);
-
-        FloatingCopyAllText.Text = "Copied!";
-        Task.Delay(1500).ContinueWith(_ =>
-        {
-            App.CurrentAppSynchronizationContext?.Post(__ => FloatingCopyAllText.Text = "Copy all", null);
-        });
     }
 
     private static void CopyNoteToClipboard(NoteModel note)

@@ -42,8 +42,19 @@ public sealed class NoteModel : INotifyPropertyChanged
     public string Title
     {
         get => _title;
-        set { if (_title != value) { _title = value; OnPropertyChanged(); } }
+        set
+        {
+            if (_title != value)
+            {
+                _title = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayTitle));
+            }
+        }
     }
+
+    [JsonIgnore]
+    public string DisplayTitle => string.IsNullOrWhiteSpace(_title) ? "Untitled Note" : _title;
 
     [JsonPropertyName("content")]
     public string Content
@@ -144,5 +155,10 @@ public sealed class NoteModel : INotifyPropertyChanged
     }
 
     [JsonIgnore]
-    public string SnippetsCountText => $"{Snippets.Count} {(Snippets.Count == 1 ? "Snippet" : "Snippets")}";
+    public string SnippetsCountText => Snippets.Count switch
+    {
+        0 => string.Empty,
+        1 => "1 copyable block",
+        _ => $"{Snippets.Count} copyable blocks"
+    };
 }

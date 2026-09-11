@@ -8,7 +8,7 @@
     mc:Ignorable="d"
     Title="Sticky Note">
 
-    <Grid x:Name="RootGrid" Background="#202020">
-        <controls:NoteEditorControl x:Name="EditorControl" />
+    <Grid Background="#202020">
+        <controls:NoteFloatingViewControl x:Name="FloatingView" />
     </Grid>
 </Window>
