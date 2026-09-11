@@ -42,6 +42,7 @@ public sealed class UpdateViewModel : INotifyPropertyChanged
     public bool IsRestartRequired => _updateService.CurrentState == UpdateState.RestartRequired;
     public bool HasFailed => _updateService.CurrentState == UpdateState.Failed;
     public bool IsBannerVisible => IsUpdateAvailable && _updateService.CurrentState != UpdateState.Deferred;
+    public Microsoft.UI.Xaml.Visibility DownloadingVisibility => IsDownloading ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
 
     public string StatusText => _updateService.CurrentState switch
     {
@@ -120,6 +121,7 @@ public sealed class UpdateViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(IsRestartRequired));
         OnPropertyChanged(nameof(HasFailed));
         OnPropertyChanged(nameof(IsBannerVisible));
+        OnPropertyChanged(nameof(DownloadingVisibility));
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(DownloadProgressPercentage));
         OnPropertyChanged(nameof(ReleaseNotes));

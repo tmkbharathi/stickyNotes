@@ -46,7 +46,7 @@
         </Border>
 
         <!-- Progress Indicator -->
-        <StackPanel Spacing="4" Visibility="{x:Bind IsProgressVisible, Mode=OneWay}">
+        <StackPanel Spacing="4" Visibility="{x:Bind ProgressVisibility, Mode=OneWay}">
             <Grid>
                 <TextBlock Text="Downloading package..." Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Left" />
                 <TextBlock Text="{x:Bind ProgressText, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right" />

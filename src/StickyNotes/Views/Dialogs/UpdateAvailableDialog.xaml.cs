@@ -15,6 +15,7 @@ public sealed partial class UpdateAvailableDialog : ContentDialog
         _viewModel.ReleaseNotes ?? "• Performance improvements and bug fixes.\n• Enhanced multi-snippet copy engine.\n• Seamless background MSIX update integration.";
 
     public bool IsProgressVisible => _viewModel.IsDownloading;
+    public Microsoft.UI.Xaml.Visibility ProgressVisibility => IsProgressVisible ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
     public double ProgressValue => _viewModel.DownloadProgressPercentage;
     public string ProgressText => $"{_viewModel.DownloadProgressPercentage:F0}%";
 

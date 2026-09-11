@@ -32,13 +32,13 @@
                         <Grid ColumnDefinitions="*,Auto">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Sticky Notes" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <TextBlock Text="{x:Bind ViewModel.CurrentVersion, Mode=OneWay, Converter={StaticResource StringFormatConverter}, ConverterParameter='Version {0}'}"
+                                <TextBlock Text="{x:Bind ViewModel.FormattedVersion, Mode=OneWay}"
                                            Style="{StaticResource CaptionTextBlockStyle}"
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
                                            Style="{StaticResource CaptionTextBlockStyle}"
                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                                <TextBlock Text="{x:Bind ViewModel.LastCheckedText, Mode=OneWay, Converter={StaticResource StringFormatConverter}, ConverterParameter='Last checked: {0}'}"
+                                <TextBlock Text="{x:Bind ViewModel.FormattedLastCheckedText, Mode=OneWay}"
                                            Style="{StaticResource CaptionTextBlockStyle}"
                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                             </StackPanel>
@@ -51,7 +51,7 @@
                                 Command="{x:Bind ViewModel.CheckForUpdatesCommand}" />
                         </Grid>
 
-                        <MenuFlyoutSeparator />
+                        <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
 
                         <!-- Toggles -->
                         <ToggleSwitch
@@ -66,7 +66,7 @@
                             Header="Install updates automatically when safe"
                             IsOn="{x:Bind ViewModel.AutoInstallWhenSafe, Mode=TwoWay}" />
 
-                        <MenuFlyoutSeparator />
+                        <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
 
                         <!-- Update Channel Selector -->
                         <StackPanel Spacing="4">

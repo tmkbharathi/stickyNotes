@@ -34,6 +34,7 @@ public class UpdateServiceTests
         _settingsServiceMock.Setup(s => s.GetUpdateSettings()).Returns(new UpdateSettings
         {
             Enabled = true,
+            AutoDownloadUpdates = false,
             Channel = UpdateChannel.Stable,
             CooldownMinutes = 15,
             LastCheckTimestamp = null

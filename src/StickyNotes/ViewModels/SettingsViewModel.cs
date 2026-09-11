@@ -33,6 +33,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     }
 
     public string CurrentVersion => _updateService.GetCurrentVersion().ToString();
+    public string FormattedVersion => $"Version {CurrentVersion}";
     public string StatusText => _updateService.CurrentState switch
     {
         UpdateState.UpToDate => "You're up to date",
@@ -52,6 +53,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             return last.HasValue ? last.Value.ToLocalTime().ToString("MMM dd, yyyy h:mm tt") : "Never";
         }
     }
+    public string FormattedLastCheckedText => $"Last checked: {LastCheckedText}";
 
     public bool AutoCheckUpdates
     {
