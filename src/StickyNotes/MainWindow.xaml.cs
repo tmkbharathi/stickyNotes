@@ -26,6 +26,9 @@ public sealed partial class MainWindow : Window
     {
         this.InitializeComponent();
 
+        this.ExtendsContentIntoTitleBar = true;
+        this.SetTitleBar(AppTitleBar);
+
         var storageDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "StickyNotes");
@@ -61,11 +64,7 @@ public sealed partial class MainWindow : Window
     {
         if (args.IsSettingsSelected)
         {
-            ContentFrame.Navigate(typeof(SettingsPage));
-            if (ContentFrame.Content is SettingsPage settingsPage)
-            {
-                settingsPage.ViewModel = SettingsVm;
-            }
+            ContentFrame.Navigate(typeof(SettingsPage), SettingsVm);
         }
         else
         {
@@ -75,19 +74,6 @@ public sealed partial class MainWindow : Window
 
     private void NavigateToNotes()
     {
-        // Default notes hub placeholder or content view
-        var notesHub = new StackPanel { Spacing = 12 };
-        notesHub.Children.Add(new TextBlock
-        {
-            Text = "Sticky Notes Hub",
-            Style = (Style)Application.Current.Resources["TitleTextBlockStyle"]
-        });
-        notesHub.Children.Add(new TextBlock
-        {
-            Text = "Create, search, and manage your sticky notes with multi-snippet copy engine.",
-            Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
-        });
-
-        ContentFrame.Content = notesHub;
+        ContentFrame.Navigate(typeof(NotesHubPage), HubViewModel);
     }
 }

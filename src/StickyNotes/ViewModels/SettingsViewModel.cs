@@ -98,6 +98,26 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         {
             _ = _settingsService.SetUpdateChannelAsync(value);
             OnPropertyChanged();
+            OnPropertyChanged(nameof(SelectedChannelIndex));
+        }
+    }
+
+    public int SelectedChannelIndex
+    {
+        get
+        {
+            for (int i = 0; i < AvailableChannels.Count; i++)
+            {
+                if (AvailableChannels[i] == Channel) return i;
+            }
+            return 0;
+        }
+        set
+        {
+            if (value >= 0 && value < AvailableChannels.Count)
+            {
+                Channel = AvailableChannels[value];
+            }
         }
     }
 

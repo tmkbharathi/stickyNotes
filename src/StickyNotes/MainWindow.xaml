@@ -12,19 +12,36 @@
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+
+        <!-- Custom In-App TitleBar -->
+        <Grid x:Name="AppTitleBar"
+              Grid.Row="0"
+              Height="44"
+              VerticalAlignment="Top"
+              Background="Transparent"
+              Padding="16,0,0,0">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
+                <FontIcon Glyph="&#xE8D7;" FontSize="16" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                <TextBlock Text="Sticky Notes"
+                           Style="{StaticResource CaptionTextBlockStyle}"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
 
         <!-- Top Update Banner Notification Host -->
         <ContentControl
             x:Name="UpdateBannerHost"
-            Grid.Row="0"
-            Margin="16,12,16,0" />
+            Grid.Row="1"
+            Margin="16,4,16,0" />
 
         <!-- Main Navigation View -->
         <NavigationView
             x:Name="MainNav"
-            Grid.Row="1"
+            Grid.Row="2"
             IsBackButtonVisible="Collapsed"
             IsSettingsVisible="True"
             PaneDisplayMode="Top"

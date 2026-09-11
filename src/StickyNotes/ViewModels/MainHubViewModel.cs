@@ -46,6 +46,8 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
         DeleteNoteCommand = new AsyncRelayCommand(async () => { });
     }
 
+    public string NotesCountText => $"{DisplayedNotes.Count} {(DisplayedNotes.Count == 1 ? "note" : "notes")}";
+
     public string SearchQuery
     {
         get => _searchQuery;
@@ -107,17 +109,39 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
         }
     }
 
+    public async Task DeleteNoteAsync(NoteModel note)
+    {
+        note.IsDeleted = true;
+        await _notePersistence.DeleteNoteAsync(note.Id);
+        AllNotes.Remove(note);
+        ApplyFilterAndSearch();
+    }
+
+    public async Task SaveNoteAsync(NoteModel note)
+    {
+        note.ModifiedAt = DateTimeOffset.UtcNow;
+        await _notePersistence.SaveNoteAsync(note);
+        ApplyFilterAndSearch();
+    }
+
+    public async Task TogglePinAsync(NoteModel note)
+    {
+        note.IsPinned = !note.IsPinned;
+        await _notePersistence.SaveNoteAsync(note);
+        ApplyFilterAndSearch();
+    }
+
     public async Task CreateNewNoteAsync()
     {
         var newNote = new NoteModel
         {
             Title = "New Note",
-            Content = "Type your note instructions or descriptions here...",
+            Content = "Type your note description or instructions here...",
             ColorTheme = "yellow",
             Category = "Work",
             Snippets = new List<SnippetBoxModel>
             {
-                new() { Type = "CMD", Label = "CMD", Content = "dotnet build -c Release" }
+                new() { Type = "CMD", Label = "Build Command", Content = "dotnet build" }
             }
         };
 
@@ -128,7 +152,7 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
 
     public void FilterCategory(string category)
     {
-        _currentFilter = category;
+        _currentFilter = category.ToLowerInvariant();
         ApplyFilterAndSearch();
     }
 
@@ -140,6 +164,9 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
         var filtered = AllNotes.Where(n =>
         {
             if (_currentFilter == "pinned" && !n.IsPinned) return false;
+            if (_currentFilter == "work" && !n.Category.Equals("Work", StringComparison.OrdinalIgnoreCase)) return false;
+            if (_currentFilter == "dev" && !n.Category.Equals("Dev", StringComparison.OrdinalIgnoreCase)) return false;
+            if (_currentFilter == "personal" && !n.Category.Equals("Personal", StringComparison.OrdinalIgnoreCase)) return false;
             if (_currentFilter == "trash" && !n.IsDeleted) return false;
 
             if (string.IsNullOrEmpty(query)) return true;
@@ -155,5 +182,6 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
         {
             DisplayedNotes.Add(item);
         }
+        OnPropertyChanged(nameof(NotesCountText));
     }
 }
