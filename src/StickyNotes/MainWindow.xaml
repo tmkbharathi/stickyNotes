@@ -1,0 +1,39 @@
+<Window
+    x:Class="StickyNotes.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:StickyNotes.Views.Controls"
+    xmlns:views="using:StickyNotes.Views"
+    mc:Ignorable="d"
+    Title="Sticky Notes">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Top Update Banner Notification Host -->
+        <ContentControl
+            x:Name="UpdateBannerHost"
+            Grid.Row="0"
+            Margin="16,12,16,0" />
+
+        <!-- Main Navigation View -->
+        <NavigationView
+            x:Name="MainNav"
+            Grid.Row="1"
+            IsBackButtonVisible="Collapsed"
+            IsSettingsVisible="True"
+            PaneDisplayMode="Top"
+            SelectionChanged="OnNavSelectionChanged">
+            <NavigationView.MenuItems>
+                <NavigationViewItem Content="All Notes" Tag="notes" Icon="AllApps" IsSelected="True" />
+            </NavigationView.MenuItems>
+
+            <Frame x:Name="ContentFrame" Margin="16" />
+        </NavigationView>
+    </Grid>
+</Window>

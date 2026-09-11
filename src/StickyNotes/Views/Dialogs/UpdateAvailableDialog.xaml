@@ -15,7 +15,7 @@
     <StackPanel Spacing="12" Width="420">
         <!-- Versions Information Header -->
         <TextBlock
-            Text="{x:Bind VersionSummaryText, Mode=OneWay}"
+            Text="{x:Bind VersionSummaryText, Mode=OneTime}"
             Style="{StaticResource BodyStrongTextBlockStyle}" />
 
         <TextBlock
@@ -36,7 +36,7 @@
                 <StackPanel Spacing="6">
                     <TextBlock Text="What's New:" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="SemiBold" />
                     <TextBlock
-                        Text="{x:Bind ReleaseNotesText, Mode=OneWay}"
+                        Text="{x:Bind ReleaseNotesText, Mode=OneTime}"
                         Style="{StaticResource CaptionTextBlockStyle}"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         TextWrapping="Wrap"
@@ -46,12 +46,12 @@
         </Border>
 
         <!-- Progress Indicator -->
-        <StackPanel Spacing="4" Visibility="{x:Bind ProgressVisibility, Mode=OneWay}">
+        <StackPanel Spacing="4" Visibility="{x:Bind ViewModel.DownloadingVisibility, Mode=OneWay}">
             <Grid>
                 <TextBlock Text="Downloading package..." Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Left" />
-                <TextBlock Text="{x:Bind ProgressText, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right" />
+                <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right" />
             </Grid>
-            <ProgressBar Value="{x:Bind ProgressValue, Mode=OneWay}" Maximum="100" Height="4" />
+            <ProgressBar Value="{x:Bind ViewModel.DownloadProgressPercentage, Mode=OneWay}" Maximum="100" Height="4" />
         </StackPanel>
     </StackPanel>
 </ContentDialog>

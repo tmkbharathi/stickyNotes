@@ -6,22 +6,17 @@ namespace StickyNotes.Views.Dialogs;
 
 public sealed partial class UpdateAvailableDialog : ContentDialog
 {
-    private readonly UpdateViewModel _viewModel;
+    public UpdateViewModel ViewModel { get; }
 
     public string VersionSummaryText =>
-        $"Sticky Notes {_viewModel.AvailableVersionText} is available.\nYou are currently using version {_viewModel.CurrentVersionText}.";
+        $"Sticky Notes {ViewModel.AvailableVersionText} is available.\nYou are currently using version {ViewModel.CurrentVersionText}.";
 
     public string ReleaseNotesText =>
-        _viewModel.ReleaseNotes ?? "• Performance improvements and bug fixes.\n• Enhanced multi-snippet copy engine.\n• Seamless background MSIX update integration.";
-
-    public bool IsProgressVisible => _viewModel.IsDownloading;
-    public Microsoft.UI.Xaml.Visibility ProgressVisibility => IsProgressVisible ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
-    public double ProgressValue => _viewModel.DownloadProgressPercentage;
-    public string ProgressText => $"{_viewModel.DownloadProgressPercentage:F0}%";
+        ViewModel.ReleaseNotes ?? "• Performance improvements and bug fixes.\n• Enhanced multi-snippet copy engine.\n• Seamless background MSIX update integration.";
 
     public UpdateAvailableDialog(UpdateViewModel viewModel)
     {
-        _viewModel = viewModel;
+        ViewModel = viewModel;
         this.InitializeComponent();
     }
 
@@ -30,7 +25,7 @@ public sealed partial class UpdateAvailableDialog : ContentDialog
         var deferral = args.GetDeferral();
         try
         {
-            await _viewModel.UpdateNowAsync();
+            await ViewModel.UpdateNowAsync();
         }
         finally
         {
@@ -40,6 +35,6 @@ public sealed partial class UpdateAvailableDialog : ContentDialog
 
     private void OnSecondaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
-        _viewModel.DeferUpdate();
+        ViewModel.DeferUpdate();
     }
 }
