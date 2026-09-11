@@ -1,17 +1,23 @@
 #define MyAppName "Sticky Notes"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1.1"
 #define MyAppPublisher "tmkb"
 #define MyAppExeName "StickyNotes.exe"
 
 [Setup]
 AppId={{D37F8A45-927A-4D3B-A938-D0E1F4C9827B}
 AppName={#MyAppName}
-AppVersion=1.0.5
+AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
+PrivilegesRequired=lowest
+PrivilegesRequiredOverridesAllowed=dialog
+UsePreviousAppDir=no
+UsePreviousPrivileges=no
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 DisableProgramGroupPage=yes
+CloseApplications=yes
+RestartApplications=no
 OutputDir=.
 OutputBaseFilename=StickyNotes-setup
 SetupIconFile=src\StickyNotes\Assets\appIcon.ico

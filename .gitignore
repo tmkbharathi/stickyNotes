@@ -38,3 +38,4 @@ desktop.ini
 *.temp
 storage/
 stickynotes.backup.json
+*.exe
