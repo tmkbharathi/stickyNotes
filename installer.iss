@@ -1,12 +1,12 @@
 #define MyAppName "Sticky Notes"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1.2"
 #define MyAppPublisher "tmkb"
 #define MyAppExeName "StickyNotes.exe"
 
 [Setup]
 AppId={{D37F8A45-927A-4D3B-A938-D0E1F4C9827B}
 AppName={#MyAppName}
-AppVersion=1.0.0
+AppVersion=1.1.2
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
 PrivilegesRequired=lowest
@@ -46,6 +46,7 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+
 
 
 
