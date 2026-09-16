@@ -27,6 +27,25 @@
                     <TextBlock Text="Settings" FontSize="18" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center" />
                 </StackPanel>
 
+                <!-- General & Startup Section Card -->
+                <StackPanel Spacing="12" VerticalAlignment="Top">
+                    <TextBlock Text="Startup &amp; Preferences" FontSize="14" FontWeight="SemiBold" Foreground="#CCCCCC" />
+
+                    <Border
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16"
+                        VerticalAlignment="Top">
+                        <StackPanel Spacing="16" VerticalAlignment="Top">
+                            <ToggleSwitch
+                                Header="Start Sticky Notes with Windows"
+                                IsOn="{x:Bind ViewModel.StartWithWindows, Mode=TwoWay}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
                 <!-- Updates Section Card -->
                 <StackPanel Spacing="12" VerticalAlignment="Top">
                     <TextBlock Text="Updates" FontSize="14" FontWeight="SemiBold" Foreground="#CCCCCC" />

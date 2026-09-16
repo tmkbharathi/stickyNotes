@@ -21,6 +21,7 @@ public sealed partial class MainWindow : Window
     private readonly IWindowStateManager _windowStateManager;
     private readonly IAppLifecycleManager _lifecycleManager;
     private readonly IWindowGeometryService _geometryService;
+    private readonly IStartupService _startupService;
     private readonly IUpdateLogger _logger;
 
     private AppWindow? _appWindow;
@@ -58,6 +59,7 @@ public sealed partial class MainWindow : Window
         _windowStateManager = new WindowStateManager(storageDir, _logger);
         _lifecycleManager = new AppLifecycleManager(_logger);
         _geometryService = new WindowGeometryService(storageDir, _logger);
+        _startupService = new WindowsStartupService(_logger);
 
         var httpClient = new HttpClient();
         var deploymentProvider = new MsixPackageManagerDeploymentProvider(httpClient, _logger);
@@ -71,7 +73,7 @@ public sealed partial class MainWindow : Window
             _logger);
 
         UpdateVm = new UpdateViewModel(_updateService);
-        SettingsVm = new SettingsViewModel(_settingsService, _updateService);
+        SettingsVm = new SettingsViewModel(_settingsService, _updateService, _startupService);
         HubViewModel = new MainHubViewModel(_notePersistence, _updateService, _settingsService, _geometryService);
 
         UpdateBannerHost.Content = new Views.Controls.UpdateBannerControl { ViewModel = UpdateVm };

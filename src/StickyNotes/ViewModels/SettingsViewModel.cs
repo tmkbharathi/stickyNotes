@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using StickyNotes.Core.Models.Update;
+using StickyNotes.Core.Services.Lifecycle;
 using StickyNotes.Core.Services.Persistence;
 using StickyNotes.Core.Services.Update;
 
@@ -9,12 +10,13 @@ namespace StickyNotes.ViewModels;
 
 /// <summary>
 /// ViewModel for Settings View, binding Update channel, auto-update switches,
-/// last checked timestamp, release notes, and diagnostics.
+/// autostart with Windows toggle, last checked timestamp, and release notes.
 /// </summary>
 public sealed class SettingsViewModel : INotifyPropertyChanged
 {
     private readonly ISettingsService _settingsService;
     private readonly IUpdateService _updateService;
+    private readonly IStartupService _startupService;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -23,10 +25,14 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    public SettingsViewModel(ISettingsService settingsService, IUpdateService updateService)
+    public SettingsViewModel(
+        ISettingsService settingsService,
+        IUpdateService updateService,
+        IStartupService? startupService = null)
     {
         _settingsService = settingsService;
         _updateService = updateService;
+        _startupService = startupService ?? new WindowsStartupService();
 
         _updateService.StateChanged += (_, _) =>
         {
@@ -69,6 +75,19 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         }
     }
     public string FormattedLastCheckedText => $"Last checked: {LastCheckedText}";
+
+    public bool StartWithWindows
+    {
+        get => _startupService.IsStartupEnabled();
+        set
+        {
+            if (_startupService.IsStartupEnabled() != value)
+            {
+                _startupService.SetStartupEnabled(value);
+                OnPropertyChanged();
+            }
+        }
+    }
 
     public bool AutoCheckUpdates
     {
