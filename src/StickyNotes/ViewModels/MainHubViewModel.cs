@@ -12,7 +12,7 @@ namespace StickyNotes.ViewModels;
 /// Main dashboard / hub ViewModel coordinating notes list, background update checks on startup,
 /// search, filter categories, color filtering, dynamic snippet management, and floating NoteWindow lifecycle.
 /// </summary>
-public sealed class MainHubViewModel : INotifyPropertyChanged
+public sealed class MainHubViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly INotePersistenceService _notePersistence;
     private readonly IUpdateService _updateService;
@@ -207,7 +207,7 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
             Content = "// Enter command or snippet here...",
             OrderIndex = ActiveNote.Snippets.Count
         };
-        newBox.PropertyChanged += (s, e) => TriggerAutoSave();
+        newBox.PropertyChanged += OnSnippetPropertyChanged;
         ActiveNote.Snippets.Add(newBox);
         OnPropertyChanged(nameof(ActiveNoteSnippetCountText));
         TriggerAutoSave();
@@ -216,6 +216,7 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
     public void RemoveSnippetBoxFromActiveNote(SnippetBoxModel snippet)
     {
         if (ActiveNote == null) return;
+        snippet.PropertyChanged -= OnSnippetPropertyChanged;
         ActiveNote.Snippets.Remove(snippet);
         OnPropertyChanged(nameof(ActiveNoteSnippetCountText));
         TriggerAutoSave();
@@ -240,6 +241,11 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
     {
         if (ActiveNote == null) return;
         ActiveNote.IsAlwaysOnTop = !ActiveNote.IsAlwaysOnTop;
+        TriggerAutoSave();
+    }
+
+    private void OnSnippetPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
         TriggerAutoSave();
     }
 
@@ -383,5 +389,18 @@ public sealed class MainHubViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(CurrentCategoryTitle));
         OnPropertyChanged(nameof(HasActiveFilter));
         UpdateBadgeCounts();
+    }
+
+    public void Dispose()
+    {
+        _autoSaveTimer?.Dispose();
+        _autoSaveTimer = null;
+
+        if (_activeNote != null)
+        {
+            _activeNote.PropertyChanged -= OnActiveNotePropertyChanged;
+        }
+
+        UpdateVm?.Dispose();
     }
 }

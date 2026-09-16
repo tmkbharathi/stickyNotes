@@ -9,7 +9,7 @@ namespace StickyNotes.ViewModels;
 /// <summary>
 /// MVVM ViewModel orchestrating UI state, notifications, download progress, and user actions for updates.
 /// </summary>
-public sealed class UpdateViewModel : INotifyPropertyChanged
+public sealed class UpdateViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly IUpdateService _updateService;
 
@@ -144,6 +144,12 @@ public sealed class UpdateViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(DownloadProgressPercentage));
         OnPropertyChanged(nameof(ReleaseNotes));
         OnPropertyChanged(nameof(StatusErrorMessage));
+    }
+
+    public void Dispose()
+    {
+        _updateService.StateChanged -= OnUpdateStateChanged;
+        _updateService.DownloadProgressChanged -= OnDownloadProgressChanged;
     }
 }
 

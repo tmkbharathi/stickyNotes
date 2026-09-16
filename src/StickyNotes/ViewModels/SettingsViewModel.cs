@@ -12,7 +12,7 @@ namespace StickyNotes.ViewModels;
 /// ViewModel for Settings View, binding Update channel, auto-update switches,
 /// autostart with Windows toggle, last checked timestamp, and release notes.
 /// </summary>
-public sealed class SettingsViewModel : INotifyPropertyChanged
+public sealed class SettingsViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly ISettingsService _settingsService;
     private readonly IUpdateService _updateService;
@@ -34,40 +34,43 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         _updateService = updateService;
         _startupService = startupService ?? new WindowsStartupService();
 
-        _updateService.StateChanged += (_, _) =>
-        {
-            if (App.CurrentAppSynchronizationContext != null)
-            {
-                App.CurrentAppSynchronizationContext.Post(_ =>
-                {
-                    OnPropertyChanged(nameof(StatusText));
-                    OnPropertyChanged(nameof(FormattedLastCheckedText));
-                }, null);
-            }
-            else
-            {
-                OnPropertyChanged(nameof(StatusText));
-                OnPropertyChanged(nameof(FormattedLastCheckedText));
-            }
-        };
-
-        _updateService.DownloadProgressChanged += (_, _) =>
-        {
-            if (App.CurrentAppSynchronizationContext != null)
-            {
-                App.CurrentAppSynchronizationContext.Post(_ =>
-                {
-                    OnPropertyChanged(nameof(StatusText));
-                }, null);
-            }
-            else
-            {
-                OnPropertyChanged(nameof(StatusText));
-            }
-        };
+        _updateService.StateChanged += OnUpdateStateChanged;
+        _updateService.DownloadProgressChanged += OnDownloadProgressChanged;
 
         CheckForUpdatesCommand = new AsyncRelayCommand(async () => await _updateService.CheckForUpdatesAsync(force: true));
         CancelDownloadCommand = new RelayCommand(() => _updateService.CancelDownload());
+    }
+
+    private void OnUpdateStateChanged(object? sender, UpdateStateChangedEventArgs e)
+    {
+        if (App.CurrentAppSynchronizationContext != null)
+        {
+            App.CurrentAppSynchronizationContext.Post(_ =>
+            {
+                OnPropertyChanged(nameof(StatusText));
+                OnPropertyChanged(nameof(FormattedLastCheckedText));
+            }, null);
+        }
+        else
+        {
+            OnPropertyChanged(nameof(StatusText));
+            OnPropertyChanged(nameof(FormattedLastCheckedText));
+        }
+    }
+
+    private void OnDownloadProgressChanged(object? sender, double progress)
+    {
+        if (App.CurrentAppSynchronizationContext != null)
+        {
+            App.CurrentAppSynchronizationContext.Post(_ =>
+            {
+                OnPropertyChanged(nameof(StatusText));
+            }, null);
+        }
+        else
+        {
+            OnPropertyChanged(nameof(StatusText));
+        }
     }
 
     public string CurrentVersion => _updateService.GetCurrentVersion().ToString();
@@ -185,4 +188,10 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     public ICommand CheckForUpdatesCommand { get; }
     public ICommand CancelDownloadCommand { get; }
+
+    public void Dispose()
+    {
+        _updateService.StateChanged -= OnUpdateStateChanged;
+        _updateService.DownloadProgressChanged -= OnDownloadProgressChanged;
+    }
 }

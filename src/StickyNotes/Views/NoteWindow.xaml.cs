@@ -47,18 +47,6 @@ public sealed partial class NoteWindow : Window
         ConfigureAppWindow();
     }
 
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern int SendMessage(IntPtr hWnd, int wMsg, int wParam, int lParam);
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern bool ReleaseCapture();
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern bool SetForegroundWindow(IntPtr hWnd);
-
     private void ConfigureAppWindow()
     {
         var savedGeo = _geometryService?.GetFloatingWindowGeometry();
@@ -112,8 +100,8 @@ public sealed partial class NoteWindow : Window
         }
 
         var hWnd = WindowNative.GetWindowHandle(this);
-        ShowWindow(hWnd, 9 /* SW_RESTORE */);
-        SetForegroundWindow(hWnd);
+        NativeMethods.ShowWindow(hWnd, NativeMethods.SW_RESTORE);
+        NativeMethods.SetForegroundWindow(hWnd);
 
         _geometryService?.SetFloatingWindowVisibility(true, Note.Id);
     }
@@ -137,8 +125,8 @@ public sealed partial class NoteWindow : Window
     private void OnHeaderDrag()
     {
         var hWnd = WindowNative.GetWindowHandle(this);
-        ReleaseCapture();
-        SendMessage(hWnd, 0xA1, 0x2, 0); // WM_NCLBUTTONDOWN, HT_CAPTION
+        NativeMethods.ReleaseCapture();
+        NativeMethods.SendMessage(hWnd, (int)NativeMethods.WM_NCLBUTTONDOWN, NativeMethods.HT_CAPTION, 0);
     }
 
     private void OnTogglePin()

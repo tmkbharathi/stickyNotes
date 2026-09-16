@@ -1,12 +1,13 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using StickyNotes.Core.Models.Note;
 using StickyNotes.Core.Models.Update;
 using StickyNotes.Core.Services.Lifecycle;
-using StickyNotes.Core.Services.Logging;
 using StickyNotes.Core.Services.Persistence;
 using StickyNotes.Core.Services.Update;
+using StickyNotes.Helpers;
 using StickyNotes.Services.Tray;
 using StickyNotes.ViewModels;
 using StickyNotes.Views;
@@ -19,11 +20,8 @@ public sealed partial class MainWindow : Window
     private readonly ISettingsService _settingsService;
     private readonly IUpdateService _updateService;
     private readonly INotePersistenceService _notePersistence;
-    private readonly IWindowStateManager _windowStateManager;
-    private readonly IAppLifecycleManager _lifecycleManager;
     private readonly IWindowGeometryService _geometryService;
     private readonly IStartupService _startupService;
-    private readonly IUpdateLogger _logger;
 
     private AppWindow? _appWindow;
     private SystemTrayManager? _trayManager;
@@ -37,12 +35,6 @@ public sealed partial class MainWindow : Window
     public bool IsMainWindowOpen => _appWindow?.IsVisible ?? false;
     public bool IsFloatingWindowActive => _floatingWindow != null && _floatingWindow.IsVisibleOnScreen;
 
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern bool SetForegroundWindow(IntPtr hWnd);
-
     public MainWindow()
     {
         this.InitializeComponent();
@@ -50,32 +42,17 @@ public sealed partial class MainWindow : Window
         this.ExtendsContentIntoTitleBar = true;
         this.SetTitleBar(AppTitleBar);
 
-        var storageDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "StickyNotes");
+        // Resolve dependencies via Composition Root (App.Services)
+        var sp = App.Services;
+        _settingsService = sp.GetRequiredService<ISettingsService>();
+        _notePersistence = sp.GetRequiredService<INotePersistenceService>();
+        _geometryService = sp.GetRequiredService<IWindowGeometryService>();
+        _startupService = sp.GetRequiredService<IStartupService>();
+        _updateService = sp.GetRequiredService<IUpdateService>();
 
-        _logger = new UpdateLogger(storageDir);
-        _settingsService = new SettingsService(storageDir, _logger);
-        _notePersistence = new JsonNotePersistenceService(storageDir, _logger);
-        _windowStateManager = new WindowStateManager(storageDir, _logger);
-        _lifecycleManager = new AppLifecycleManager(_logger);
-        _geometryService = new WindowGeometryService(storageDir, _logger);
-        _startupService = new WindowsStartupService(_logger);
-
-        var httpClient = new HttpClient();
-        var deploymentProvider = new MsixPackageManagerDeploymentProvider(httpClient, _logger);
-
-        _updateService = new UpdateService(
-            deploymentProvider,
-            _notePersistence,
-            _settingsService,
-            _windowStateManager,
-            _lifecycleManager,
-            _logger);
-
-        UpdateVm = new UpdateViewModel(_updateService);
-        SettingsVm = new SettingsViewModel(_settingsService, _updateService, _startupService);
-        HubViewModel = new MainHubViewModel(_notePersistence, _updateService, _settingsService, _geometryService);
+        HubViewModel = sp.GetRequiredService<MainHubViewModel>();
+        SettingsVm = sp.GetRequiredService<SettingsViewModel>();
+        UpdateVm = sp.GetRequiredService<UpdateViewModel>();
 
         // Default auto startup with Windows to ON on initial run
         var currentUpdateSettings = _settingsService.GetUpdateSettings();
@@ -103,7 +80,7 @@ public sealed partial class MainWindow : Window
 
         // Restore and track MainWindow geometry before display
         var savedMainGeo = _geometryService.GetMainWindowGeometry();
-        _appWindow = Helpers.WindowPlacementHelper.InitializeAndTrackWindow(
+        _appWindow = WindowPlacementHelper.InitializeAndTrackWindow(
             this,
             savedMainGeo,
             (x, y, w, h, isMax) =>
@@ -115,7 +92,7 @@ public sealed partial class MainWindow : Window
             minWidth: 880,
             minHeight: 560);
 
-        Helpers.WindowMinSizeHelper.SetMinSize(this, minWidthDip: 880, minHeightDip: 560);
+        WindowMinSizeHelper.SetMinSize(this, minWidthDip: 880, minHeightDip: 560);
 
         var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "appIcon.ico");
         if (File.Exists(iconPath) && _appWindow != null)
@@ -217,8 +194,8 @@ public sealed partial class MainWindow : Window
         }
 
         var hWnd = WindowNative.GetWindowHandle(this);
-        ShowWindow(hWnd, 9 /* SW_RESTORE */);
-        SetForegroundWindow(hWnd);
+        NativeMethods.ShowWindow(hWnd, NativeMethods.SW_RESTORE);
+        NativeMethods.SetForegroundWindow(hWnd);
 
         _geometryService.SetMainWindowVisibility(true);
     }
