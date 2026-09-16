@@ -1,4 +1,5 @@
 using System.Text.Json;
+using StickyNotes.Core.Common;
 using StickyNotes.Core.Models;
 using StickyNotes.Core.Services.Logging;
 
@@ -14,7 +15,7 @@ public sealed class WindowGeometryService : IWindowGeometryService, IDisposable
     private readonly IUpdateLogger? _logger;
     private AppWindowGeometries _geometries = new();
     private readonly SemaphoreSlim _lock = new(1, 1);
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions JsonOptions = JsonDefaults.Options;
     private System.Threading.Timer? _debounceTimer;
 
     public bool IsFirstRun => _geometries.IsFirstRun;

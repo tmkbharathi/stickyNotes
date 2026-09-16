@@ -38,7 +38,7 @@ public sealed class AppLifecycleManager : IAppLifecycleManager
         {
             // If running under MSIX / Windows App SDK, Microsoft.Windows.AppLifecycle.AppInstance.Restart is invoked
             // For cross-environment robustness, attempt process restart
-            var currentExecutable = Process.GetCurrentProcess().MainModule?.FileName;
+            var currentExecutable = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName;
             if (!string.IsNullOrEmpty(currentExecutable))
             {
                 var startInfo = new ProcessStartInfo

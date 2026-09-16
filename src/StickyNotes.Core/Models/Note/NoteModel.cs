@@ -249,4 +249,36 @@ public sealed class NoteModel : INotifyPropertyChanged
         1 => "1 copyable block",
         _ => $"{Snippets.Count} copyable blocks"
     };
+
+    public NoteModel Clone()
+    {
+        var clonedSnippets = new ObservableCollection<SnippetBoxModel>();
+        foreach (var s in this.Snippets)
+        {
+            clonedSnippets.Add(s.Clone());
+        }
+
+        return new NoteModel
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Title = this.Title,
+            Content = this.Content,
+            IsTitleMasked = this.IsTitleMasked,
+            IsContentMasked = this.IsContentMasked,
+            IsContentFirst = this.IsContentFirst,
+            ColorTheme = this.ColorTheme,
+            Category = this.Category,
+            IsPinned = this.IsPinned,
+            IsAlwaysOnTop = this.IsAlwaysOnTop,
+            IsDeleted = this.IsDeleted,
+            IsOpenInWindow = this.IsOpenInWindow,
+            WindowX = this.WindowX,
+            WindowY = this.WindowY,
+            WindowWidth = this.WindowWidth,
+            WindowHeight = this.WindowHeight,
+            CreatedAt = DateTimeOffset.UtcNow,
+            ModifiedAt = DateTimeOffset.UtcNow,
+            Snippets = clonedSnippets
+        };
+    }
 }

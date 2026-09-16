@@ -128,5 +128,19 @@ public sealed class SnippetBoxModel : INotifyPropertyChanged
         get => _orderIndex;
         set { if (_orderIndex != value) { _orderIndex = value; OnPropertyChanged(); } }
     }
+
+    public SnippetBoxModel Clone()
+    {
+        return new SnippetBoxModel
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Type = this.Type,
+            Label = this.Label,
+            Content = this.Content,
+            IsMultiline = this.IsMultiline,
+            IsMasked = this.IsMasked,
+            OrderIndex = this.OrderIndex
+        };
+    }
 }
 

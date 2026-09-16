@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
+using StickyNotes.Core.Common;
 using StickyNotes.Core.Models.Note;
 using StickyNotes.Core.Services.Logging;
 
@@ -16,7 +17,7 @@ public sealed class JsonNotePersistenceService : INotePersistenceService
     private readonly IUpdateLogger _logger;
     private readonly ConcurrentDictionary<string, NoteModel> _activeNotes = new();
     private readonly SemaphoreSlim _fileLock = new(1, 1);
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions JsonOptions = JsonDefaults.Options;
 
     public JsonNotePersistenceService(string storageDirectory, IUpdateLogger logger)
     {

@@ -48,6 +48,7 @@ public sealed partial class NoteEditorControl : UserControl
     public NoteEditorControl()
     {
         this.InitializeComponent();
+        this.Unloaded += (s, e) => _debounceTimer?.Dispose();
     }
 
     private void OnHeaderBarPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)

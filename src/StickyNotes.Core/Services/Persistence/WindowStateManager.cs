@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
+using StickyNotes.Core.Common;
 using StickyNotes.Core.Models;
 using StickyNotes.Core.Services.Logging;
 
@@ -14,7 +15,7 @@ public sealed class WindowStateManager : IWindowStateManager
     private readonly IUpdateLogger _logger;
     private readonly ConcurrentDictionary<string, WindowStateModel> _windows = new();
     private readonly SemaphoreSlim _lock = new(1, 1);
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions JsonOptions = JsonDefaults.Options;
 
     public WindowStateManager(string storageDirectory, IUpdateLogger logger)
     {
