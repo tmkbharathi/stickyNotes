@@ -54,6 +54,22 @@ public sealed partial class MainWindow : Window
         SettingsVm = sp.GetRequiredService<SettingsViewModel>();
         UpdateVm = sp.GetRequiredService<UpdateViewModel>();
 
+        HubViewModel.FloatingWindowRequested += (s, note) => ShowFloatingWindow(note);
+        HubViewModel.NoteDeleted += (s, deletedNote) =>
+        {
+            if (_floatingWindow != null && _floatingWindow.Note?.Id == deletedNote.Id)
+            {
+                if (HubViewModel.ActiveNote != null)
+                {
+                    _floatingWindow.UpdateNote(HubViewModel.ActiveNote);
+                }
+                else
+                {
+                    HideFloatingWindow();
+                }
+            }
+        };
+
         // Default auto startup with Windows to ON on initial run
         var currentUpdateSettings = _settingsService.GetUpdateSettings();
         if (!currentUpdateSettings.HasInitializedStartup)
@@ -122,7 +138,17 @@ public sealed partial class MainWindow : Window
             OnOpenMainWindowRequested = () => ShowAndFocus(),
             OnShowFloatingWindowRequested = () => ShowFloatingWindow(),
             OnHideFloatingWindowRequested = () => HideFloatingWindow(),
-            OnExitRequested = () => ExitApplication()
+            OnExitRequested = () => ExitApplication(),
+            OnSessionEnding = () =>
+            {
+                _isExplicitExit = true;
+                try
+                {
+                    _geometryService.FlushAsync().GetAwaiter().GetResult();
+                    _notePersistence.FlushAllPendingAsync().GetAwaiter().GetResult();
+                }
+                catch { }
+            }
         };
 
         ContentFrame.Navigated += (s, e) =>
@@ -264,7 +290,11 @@ public sealed partial class MainWindow : Window
             // Ignore error during termination
         }
 
-        _floatingWindow?.Close();
+        if (_floatingWindow != null)
+        {
+            _floatingWindow.IsExplicitExit = true;
+            _floatingWindow.Close();
+        }
         this.Close();
 
         Application.Current.Exit();
@@ -279,11 +309,6 @@ public sealed partial class MainWindow : Window
     private void OnOpenSettingsClick(object sender, RoutedEventArgs e)
     {
         ContentFrame.Navigate(typeof(SettingsPage), SettingsVm);
-    }
-
-    private void OnOpenPopoutWindowClick(object sender, RoutedEventArgs e)
-    {
-        ShowFloatingWindow(HubViewModel.ActiveNote);
     }
 
     private Views.Dialogs.UpdateAvailableDialog? _activeUpdateDialog;

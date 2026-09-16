@@ -58,8 +58,22 @@ public partial class App : Application
 
         if (!isNewInstance)
         {
-            var msg = NativeMethods.WM_SHOW_MAIN_WINDOW;
-            NativeMethods.PostMessage(NativeMethods.HWND_BROADCAST, msg, IntPtr.Zero, IntPtr.Zero);
+            var cmdArgs = Environment.GetCommandLineArgs();
+            bool isBackground = cmdArgs.Any(a =>
+                a.Equals("--startup", StringComparison.OrdinalIgnoreCase) ||
+                a.Equals("/startup", StringComparison.OrdinalIgnoreCase) ||
+                a.Equals("-startup", StringComparison.OrdinalIgnoreCase) ||
+                a.Equals("--minimized", StringComparison.OrdinalIgnoreCase) ||
+                a.Equals("/minimized", StringComparison.OrdinalIgnoreCase) ||
+                a.Equals("--background", StringComparison.OrdinalIgnoreCase) ||
+                a.Equals("/background", StringComparison.OrdinalIgnoreCase) ||
+                a.Equals("-background", StringComparison.OrdinalIgnoreCase));
+
+            if (!isBackground)
+            {
+                var msg = NativeMethods.WM_SHOW_MAIN_WINDOW;
+                NativeMethods.PostMessage(NativeMethods.HWND_BROADCAST, msg, IntPtr.Zero, IntPtr.Zero);
+            }
             Environment.Exit(0);
             return;
         }

@@ -22,6 +22,7 @@ public sealed partial class NoteWindow : Window
     public NoteModel Note { get; private set; }
 
     public bool IsVisibleOnScreen => _appWindow?.IsVisible ?? false;
+    public bool IsExplicitExit { get; set; }
 
     public NoteWindow(
         NoteModel note,
@@ -35,6 +36,8 @@ public sealed partial class NoteWindow : Window
         _geometryService = geometryService;
         _onNoteUpdated = onNoteUpdated;
         _onNewNoteRequested = onNewNoteRequested;
+
+        Note.PropertyChanged += OnNotePropertyChanged;
 
         this.InitializeComponent();
 
@@ -84,8 +87,11 @@ public sealed partial class NoteWindow : Window
             // Intercept close button on appWindow
             _appWindow.Closing += (s, e) =>
             {
-                e.Cancel = true;
-                HideToTray();
+                if (!IsExplicitExit)
+                {
+                    e.Cancel = true;
+                    HideToTray();
+                }
             };
         }
     }
@@ -114,11 +120,31 @@ public sealed partial class NoteWindow : Window
 
     public void UpdateNote(NoteModel note)
     {
+        if (Note != null)
+        {
+            Note.PropertyChanged -= OnNotePropertyChanged;
+        }
         Note = note;
+        Note.PropertyChanged += OnNotePropertyChanged;
         FloatingView.Note = note;
+        if (_presenter != null)
+        {
+            _presenter.IsAlwaysOnTop = Note.IsAlwaysOnTop || Note.IsPinned;
+        }
         if (IsVisibleOnScreen)
         {
             _geometryService?.SetFloatingWindowVisibility(true, note.Id);
+        }
+    }
+
+    private void OnNotePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(NoteModel.IsPinned) || e.PropertyName == nameof(NoteModel.IsAlwaysOnTop))
+        {
+            if (_presenter != null)
+            {
+                _presenter.IsAlwaysOnTop = Note.IsPinned || Note.IsAlwaysOnTop;
+            }
         }
     }
 

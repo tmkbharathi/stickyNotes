@@ -11,7 +11,9 @@ public static class NativeMethods
 
     public const uint WM_USER = 0x0400;
     public const uint WM_TRAYICON = WM_USER + 200;
-    public const uint WM_SHOW_MAIN_WINDOW = WM_USER + 201;
+
+    private static uint _wmShowMainWindow = 0;
+    public static uint WM_SHOW_MAIN_WINDOW => _wmShowMainWindow != 0 ? _wmShowMainWindow : (_wmShowMainWindow = RegisterWindowMessageW("StickyNotes_ShowMainWindow_Wakeup"));
 
     public const uint WM_LBUTTONUP = 0x0202;
     public const uint WM_LBUTTONDBLCLK = 0x0203;
@@ -20,6 +22,8 @@ public static class NativeMethods
     public const int HT_CAPTION = 0x0002;
 
     public const int WM_GETMINMAXINFO = 0x0024;
+    public const uint WM_QUERYENDSESSION = 0x0011;
+    public const uint WM_ENDSESSION = 0x0016;
 
     public const int SW_RESTORE = 9;
 
@@ -133,6 +137,9 @@ public static class NativeMethods
     [DllImport("user32.dll")]
     public static extern IntPtr LoadIconW(IntPtr hInstance, IntPtr lpIconName);
 
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern uint RegisterWindowMessageW(string lpString);
+
     [DllImport("user32.dll")]
     public static extern uint GetDpiForWindow(IntPtr hWnd);
 
@@ -152,6 +159,9 @@ public static class NativeMethods
 
     [DllImport("comctl32.dll", SetLastError = true)]
     public static extern bool SetWindowSubclass(IntPtr hWnd, SUBCLASSPROC pfnSubclass, UIntPtr uIdSubclass, IntPtr dwRefData);
+
+    [DllImport("comctl32.dll", SetLastError = true)]
+    public static extern bool RemoveWindowSubclass(IntPtr hWnd, SUBCLASSPROC pfnSubclass, UIntPtr uIdSubclass);
 
     [DllImport("comctl32.dll", SetLastError = true)]
     public static extern IntPtr DefSubclassProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);

@@ -26,6 +26,7 @@ public sealed class SystemTrayManager : IDisposable
     public Action? OnShowFloatingWindowRequested { get; set; }
     public Action? OnHideFloatingWindowRequested { get; set; }
     public Action? OnExitRequested { get; set; }
+    public Action? OnSessionEnding { get; set; }
 
     public SystemTrayManager(IntPtr hostHwnd)
     {
@@ -58,6 +59,11 @@ public sealed class SystemTrayManager : IDisposable
             {
                 OnOpenMainWindowRequested?.Invoke();
                 return IntPtr.Zero;
+            }
+            else if (uMsg == NativeMethods.WM_QUERYENDSESSION || uMsg == NativeMethods.WM_ENDSESSION)
+            {
+                OnSessionEnding?.Invoke();
+                return NativeMethods.DefSubclassProc(hWnd, uMsg, wParam, lParam);
             }
 
             return NativeMethods.DefSubclassProc(hWnd, uMsg, wParam, lParam);
@@ -173,5 +179,10 @@ public sealed class SystemTrayManager : IDisposable
     public void Dispose()
     {
         RemoveTrayIcon();
+        if (_subclassProc != null && _hostHwnd != IntPtr.Zero)
+        {
+            NativeMethods.RemoveWindowSubclass(_hostHwnd, _subclassProc, new UIntPtr(999));
+            _subclassProc = null;
+        }
     }
 }

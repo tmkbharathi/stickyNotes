@@ -38,6 +38,12 @@ public sealed class MainHubViewModel : INotifyPropertyChanged, IDisposable
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
+    public event EventHandler<NoteModel?>? FloatingWindowRequested;
+    public void RequestFloatingWindow(NoteModel? note = null) =>
+        FloatingWindowRequested?.Invoke(this, note ?? ActiveNote);
+
+    public event EventHandler<NoteModel>? NoteDeleted;
+
     private readonly IWindowGeometryService? _geometryService;
     public IWindowGeometryService? GeometryService => _geometryService;
 
@@ -288,6 +294,7 @@ public sealed class MainHubViewModel : INotifyPropertyChanged, IDisposable
             ActiveNote = AllNotes.FirstOrDefault();
             if (ActiveNote == null) IsFloatingWindowVisible = false;
         }
+        NoteDeleted?.Invoke(this, note);
         ApplyFilterAndSearch();
         UpdateBadgeCounts();
     }

@@ -46,31 +46,9 @@ public sealed partial class NotesHubPage : Page
         await ViewModel.UpdateVm.CheckForUpdatesAsync(force: true);
     }
 
-    private void OnToggleFloatingPaneClick(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel == null) return;
-        ViewModel.IsFloatingWindowVisible = !ViewModel.IsFloatingWindowVisible;
-    }
-
-    private void OnOpenStandaloneWindowClick(object sender, RoutedEventArgs e)
-    {
-        OpenActiveNoteInStandaloneWindow();
-    }
-
     private void OnPopoutRequestedFromEditor(object? sender, EventArgs e)
     {
-        OpenActiveNoteInStandaloneWindow();
-    }
-
-    private void OpenActiveNoteInStandaloneWindow()
-    {
-        if (ViewModel?.ActiveNote == null) return;
-        var noteWin = new NoteWindow(
-            ViewModel.ActiveNote,
-            geometryService: ViewModel.GeometryService,
-            onNoteUpdated: async _ => await ViewModel.SaveNoteAsync(ViewModel.ActiveNote),
-            onNewNoteRequested: async _ => await ViewModel.CreateNewNoteAsync());
-        noteWin.Activate();
+        ViewModel?.RequestFloatingWindow(ViewModel.ActiveNote);
     }
 
     private void OnFilterNavClick(object sender, RoutedEventArgs e)

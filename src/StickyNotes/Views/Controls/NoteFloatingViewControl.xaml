@@ -104,7 +104,7 @@
                     <!-- Note Body (Read-Only, Completely Collapsed when Hidden) -->
                     <TextBlock
                         Grid.Row="{x:Bind Note.IsContentFirst, Mode=OneWay, Converter={StaticResource BoolToIntConv}, ConverterParameter='Invert'}"
-                        Text="{x:Bind Note.Content, Mode=OneWay}"
+                        Text="{x:Bind Note.DisplayContent, Mode=OneWay}"
                         FontSize="12"
                         Foreground="#DDDDDD"
                         TextWrapping="Wrap"
