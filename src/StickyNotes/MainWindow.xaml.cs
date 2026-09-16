@@ -77,6 +77,15 @@ public sealed partial class MainWindow : Window
         SettingsVm = new SettingsViewModel(_settingsService, _updateService, _startupService);
         HubViewModel = new MainHubViewModel(_notePersistence, _updateService, _settingsService, _geometryService);
 
+        // Default auto startup with Windows to ON on initial run
+        var currentUpdateSettings = _settingsService.GetUpdateSettings();
+        if (!currentUpdateSettings.HasInitializedStartup)
+        {
+            _startupService.SetStartupEnabled(true);
+            currentUpdateSettings.HasInitializedStartup = true;
+            _ = _settingsService.SaveUpdateSettingsAsync(currentUpdateSettings);
+        }
+
         _updateService.StateChanged += (s, e) =>
         {
             if (e.NewState == UpdateState.UpdateAvailable)
@@ -137,6 +146,13 @@ public sealed partial class MainWindow : Window
             OnShowFloatingWindowRequested = () => ShowFloatingWindow(),
             OnHideFloatingWindowRequested = () => HideFloatingWindow(),
             OnExitRequested = () => ExitApplication()
+        };
+
+        ContentFrame.Navigated += (s, e) =>
+        {
+            TopSettingsButton.Visibility = (e.SourcePageType == typeof(SettingsPage))
+                ? Visibility.Collapsed
+                : Visibility.Visible;
         };
 
         NavigateToNotes();

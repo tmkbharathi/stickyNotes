@@ -88,14 +88,6 @@
                                 Header="Automatically check for updates"
                                 IsOn="{x:Bind ViewModel.AutoCheckUpdates, Mode=TwoWay}" />
 
-                            <ToggleSwitch
-                                Header="Download updates automatically"
-                                IsOn="{x:Bind ViewModel.AutoDownloadUpdates, Mode=TwoWay}" />
-
-                            <ToggleSwitch
-                                Header="Install updates automatically when safe"
-                                IsOn="{x:Bind ViewModel.AutoInstallWhenSafe, Mode=TwoWay}" />
-
                         </StackPanel>
                     </Border>
                 </StackPanel>

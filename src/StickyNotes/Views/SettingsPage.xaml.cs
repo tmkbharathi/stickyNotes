@@ -36,5 +36,9 @@ public sealed partial class SettingsPage : Page
         {
             this.Frame.GoBack();
         }
+        else
+        {
+            this.Frame?.Navigate(typeof(NotesHubPage));
+        }
     }
 }

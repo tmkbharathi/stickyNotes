@@ -37,4 +37,7 @@ public sealed class UpdateSettings
 
     [JsonPropertyName("updateFeedUrlTemplate")]
     public string UpdateFeedUrlTemplate { get; set; } = "https://api.github.com/repos/tmkbharathi/stickyNotes/releases/latest";
+
+    [JsonPropertyName("hasInitializedStartup")]
+    public bool HasInitializedStartup { get; set; } = false;
 }
