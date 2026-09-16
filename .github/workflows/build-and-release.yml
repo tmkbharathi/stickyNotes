@@ -137,9 +137,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: StickyNotes-windows-x64
-          path: |
-            StickyNotes-setup.exe
-            StickyNotesCert.cer
+          path: StickyNotes-setup.exe
 
   release:
     needs: build
@@ -165,8 +163,6 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
-          files: |
-            release-artifact/StickyNotes-setup.exe
-            release-artifact/StickyNotesCert.cer
+          files: release-artifact/StickyNotes-setup.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
