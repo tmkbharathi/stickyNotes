@@ -11,8 +11,6 @@
         <Grid.RowDefinitions>
             <!-- Custom In-App TitleBar -->
             <RowDefinition Height="Auto" />
-            <!-- Update Notification Banner (Host) -->
-            <RowDefinition Height="Auto" />
             <!-- Main Content View -->
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
@@ -57,13 +55,7 @@
             </StackPanel>
         </Grid>
 
-        <!-- Update Available Banner Notification Host -->
-        <ContentControl
-            x:Name="UpdateBannerHost"
-            Grid.Row="1"
-            Margin="0" />
-
         <!-- Main Content Area -->
-        <Frame x:Name="ContentFrame" Grid.Row="2" />
+        <Frame x:Name="ContentFrame" Grid.Row="1" />
     </Grid>
 </Window>

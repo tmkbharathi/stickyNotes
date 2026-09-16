@@ -36,5 +36,5 @@ public sealed class UpdateSettings
     public string? LastSuccessfulVersion { get; set; }
 
     [JsonPropertyName("updateFeedUrlTemplate")]
-    public string UpdateFeedUrlTemplate { get; set; } = "https://updates.stickynotes.fluent/releases/{channel}/latest.json";
+    public string UpdateFeedUrlTemplate { get; set; } = "https://api.github.com/repos/tmkbharathi/stickyNotes/releases/latest";
 }

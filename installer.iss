@@ -1,12 +1,12 @@
 #define MyAppName "Sticky Notes"
-#define MyAppVersion "1.1.1"
+#define MyAppVersion "1.0.0"
 #define MyAppPublisher "tmkb"
 #define MyAppExeName "StickyNotes.exe"
 
 [Setup]
 AppId={{D37F8A45-927A-4D3B-A938-D0E1F4C9827B}
 AppName={#MyAppName}
-AppVersion=1.1.1
+AppVersion=1.0.0
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
 PrivilegesRequired=lowest

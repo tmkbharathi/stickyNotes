@@ -23,6 +23,7 @@ public sealed class UpdateService : IUpdateService
     private UpdateInfo? _currentUpdateInfo;
     private double _downloadProgress = 0.0;
     private readonly SemaphoreSlim _updateLock = new(1, 1);
+    private CancellationTokenSource? _downloadCts;
 
     public UpdateState CurrentState => _currentState;
     public UpdateInfo? CurrentUpdateInfo => _currentUpdateInfo;
@@ -58,6 +59,19 @@ public sealed class UpdateService : IUpdateService
         {
             _currentState = newState;
             StateChanged?.Invoke(this, new UpdateStateChangedEventArgs(prev, newState, _currentUpdateInfo, message));
+        }
+    }
+
+    public void CancelDownload()
+    {
+        if (_currentState == UpdateState.Downloading)
+        {
+            _logger.LogInfo("Download cancellation requested.");
+            _downloadCts?.Cancel();
+            _downloadProgress = 0;
+            SetState(UpdateState.UpdateAvailable, _currentUpdateInfo?.ReleaseMetadata != null
+                ? $"Version {_currentUpdateInfo.ReleaseMetadata.Version} is available"
+                : "Update available");
         }
     }
 
@@ -164,9 +178,14 @@ public sealed class UpdateService : IUpdateService
             return false;
         }
 
-        await _updateLock.WaitAsync(cancellationToken);
+        _downloadCts?.Dispose();
+        _downloadCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var activeToken = _downloadCts.Token;
+
+        await _updateLock.WaitAsync(activeToken);
         try
         {
+            _downloadProgress = 0.0;
             SetState(UpdateState.Downloading, "Downloading update...");
 
             var combinedProgress = new Progress<double>(p =>
@@ -177,7 +196,7 @@ public sealed class UpdateService : IUpdateService
             });
 
             var success = await _deploymentProvider.DownloadPackageAsync(
-                _currentUpdateInfo.ReleaseMetadata, combinedProgress, cancellationToken);
+                _currentUpdateInfo.ReleaseMetadata, combinedProgress, activeToken);
 
             if (success)
             {
@@ -195,9 +214,27 @@ public sealed class UpdateService : IUpdateService
             }
             else
             {
+                if (activeToken.IsCancellationRequested)
+                {
+                    _downloadProgress = 0;
+                    SetState(UpdateState.UpdateAvailable, _currentUpdateInfo?.ReleaseMetadata != null
+                        ? $"Version {_currentUpdateInfo.ReleaseMetadata.Version} is available"
+                        : "Update available");
+                    return false;
+                }
+
                 SetState(UpdateState.Failed, "Download failed");
                 return false;
             }
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInfo("Download operation was cancelled.");
+            _downloadProgress = 0;
+            SetState(UpdateState.UpdateAvailable, _currentUpdateInfo?.ReleaseMetadata != null
+                ? $"Version {_currentUpdateInfo.ReleaseMetadata.Version} is available"
+                : "Update available");
+            return false;
         }
         finally
         {

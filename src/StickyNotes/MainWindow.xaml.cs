@@ -2,6 +2,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using StickyNotes.Core.Models.Note;
+using StickyNotes.Core.Models.Update;
 using StickyNotes.Core.Services.Lifecycle;
 using StickyNotes.Core.Services.Logging;
 using StickyNotes.Core.Services.Persistence;
@@ -76,7 +77,20 @@ public sealed partial class MainWindow : Window
         SettingsVm = new SettingsViewModel(_settingsService, _updateService, _startupService);
         HubViewModel = new MainHubViewModel(_notePersistence, _updateService, _settingsService, _geometryService);
 
-        UpdateBannerHost.Content = new Views.Controls.UpdateBannerControl { ViewModel = UpdateVm };
+        _updateService.StateChanged += (s, e) =>
+        {
+            if (e.NewState == UpdateState.UpdateAvailable)
+            {
+                if (App.CurrentAppSynchronizationContext != null)
+                {
+                    App.CurrentAppSynchronizationContext.Post(_ => _ = ShowUpdateDialogAsync(), null);
+                }
+                else
+                {
+                    _ = ShowUpdateDialogAsync();
+                }
+            }
+        };
 
         // Restore and track MainWindow geometry before display
         var savedMainGeo = _geometryService.GetMainWindowGeometry();
@@ -277,5 +291,29 @@ public sealed partial class MainWindow : Window
     private void OnOpenPopoutWindowClick(object sender, RoutedEventArgs e)
     {
         ShowFloatingWindow(HubViewModel.ActiveNote);
+    }
+
+    private Views.Dialogs.UpdateAvailableDialog? _activeUpdateDialog;
+
+    private async Task ShowUpdateDialogAsync()
+    {
+        if (_activeUpdateDialog != null || this.Content?.XamlRoot == null) return;
+
+        try
+        {
+            _activeUpdateDialog = new Views.Dialogs.UpdateAvailableDialog(UpdateVm)
+            {
+                XamlRoot = this.Content.XamlRoot
+            };
+            await _activeUpdateDialog.ShowAsync();
+        }
+        catch
+        {
+            // Avoid collision if already open
+        }
+        finally
+        {
+            _activeUpdateDialog = null;
+        }
     }
 }

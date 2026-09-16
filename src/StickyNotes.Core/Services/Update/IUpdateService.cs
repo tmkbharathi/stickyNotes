@@ -68,6 +68,7 @@ public interface IUpdateService
 
     Task<UpdateInfo> CheckForUpdatesAsync(bool force = false, CancellationToken cancellationToken = default);
     Task<bool> DownloadUpdateAsync(IProgress<double>? progress = null, CancellationToken cancellationToken = default);
+    void CancelDownload();
     Task<UpdateInstallationResult> InstallUpdateAsync(bool restartAfterInstall = true);
     void DeferUpdate(string reason = "User requested Later");
 

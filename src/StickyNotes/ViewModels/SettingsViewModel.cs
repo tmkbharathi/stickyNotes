@@ -50,7 +50,24 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
                 OnPropertyChanged(nameof(FormattedLastCheckedText));
             }
         };
+
+        _updateService.DownloadProgressChanged += (_, _) =>
+        {
+            if (App.CurrentAppSynchronizationContext != null)
+            {
+                App.CurrentAppSynchronizationContext.Post(_ =>
+                {
+                    OnPropertyChanged(nameof(StatusText));
+                }, null);
+            }
+            else
+            {
+                OnPropertyChanged(nameof(StatusText));
+            }
+        };
+
         CheckForUpdatesCommand = new AsyncRelayCommand(async () => await _updateService.CheckForUpdatesAsync(force: true));
+        CancelDownloadCommand = new RelayCommand(() => _updateService.CancelDownload());
     }
 
     public string CurrentVersion => _updateService.GetCurrentVersion().ToString();
@@ -109,6 +126,10 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             var s = _settingsService.GetUpdateSettings();
             s.AutoDownloadUpdates = value;
             _ = _settingsService.SaveUpdateSettingsAsync(s);
+            if (!value && _updateService.CurrentState == UpdateState.Downloading)
+            {
+                _updateService.CancelDownload();
+            }
             OnPropertyChanged();
         }
     }
@@ -163,4 +184,5 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     };
 
     public ICommand CheckForUpdatesCommand { get; }
+    public ICommand CancelDownloadCommand { get; }
 }

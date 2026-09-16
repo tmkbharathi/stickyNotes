@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using StickyNotes.Core.Models.Update;
 using StickyNotes.Core.Services.Logging;
@@ -5,7 +7,7 @@ using StickyNotes.Core.Services.Logging;
 namespace StickyNotes.Core.Services.Update;
 
 /// <summary>
-/// Production MSIX and AppInstaller package deployment provider utilizing Windows Deployment Engine APIs.
+/// Deployment provider supporting both direct GitHub Releases and MSIX package feeds.
 /// </summary>
 public sealed class MsixPackageManagerDeploymentProvider : IPackageDeploymentProvider
 {
@@ -32,10 +34,14 @@ public sealed class MsixPackageManagerDeploymentProvider : IPackageDeploymentPro
             {
                 var localPath = feedUrl.Replace("file://", string.Empty);
                 var content = await File.ReadAllTextAsync(localPath, cancellationToken);
-                return JsonSerializer.Deserialize<ReleaseMetadata>(content);
+                return ParseReleaseJson(content);
             }
 
-            var response = await _httpClient.GetAsync(feedUrl, cancellationToken);
+            using var request = new HttpRequestMessage(HttpMethod.Get, feedUrl);
+            request.Headers.UserAgent.Add(new ProductInfoHeaderValue("StickyNotes-App", "1.0"));
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning($"Update provider returned status {response.StatusCode}");
@@ -43,11 +49,85 @@ public sealed class MsixPackageManagerDeploymentProvider : IPackageDeploymentPro
             }
 
             var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            return JsonSerializer.Deserialize<ReleaseMetadata>(json);
+            return ParseReleaseJson(json);
         }
         catch (Exception ex)
         {
             _logger.LogError($"Failed to fetch release feed from {feedUrl}", ex);
+            return null;
+        }
+    }
+
+    private ReleaseMetadata? ParseReleaseJson(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            // Detect GitHub Release API response
+            if (root.TryGetProperty("tag_name", out var tagElement))
+            {
+                var tagName = tagElement.GetString() ?? string.Empty;
+                var versionStr = tagName.TrimStart('v', 'V');
+
+                var releaseNotes = string.Empty;
+                if (root.TryGetProperty("body", out var bodyElement) && bodyElement.ValueKind == JsonValueKind.String)
+                {
+                    releaseNotes = bodyElement.GetString() ?? string.Empty;
+                }
+
+                var releaseDate = DateTimeOffset.UtcNow;
+                if (root.TryGetProperty("published_at", out var publishedElement) &&
+                    DateTimeOffset.TryParse(publishedElement.GetString(), out var parsedDate))
+                {
+                    releaseDate = parsedDate;
+                }
+
+                string packageUri = string.Empty;
+                long packageSize = 0;
+
+                if (root.TryGetProperty("assets", out var assetsElement) && assetsElement.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var asset in assetsElement.EnumerateArray())
+                    {
+                        var name = asset.TryGetProperty("name", out var nameProp) ? nameProp.GetString() ?? "" : "";
+                        var downloadUrl = asset.TryGetProperty("browser_download_url", out var urlProp) ? urlProp.GetString() ?? "" : "";
+                        var size = asset.TryGetProperty("size", out var sizeProp) ? sizeProp.GetInt64() : 0;
+
+                        if (name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ||
+                            name.EndsWith(".msix", StringComparison.OrdinalIgnoreCase) ||
+                            name.EndsWith(".appinstaller", StringComparison.OrdinalIgnoreCase))
+                        {
+                            packageUri = downloadUrl;
+                            packageSize = size;
+                            break;
+                        }
+                    }
+                }
+
+                return new ReleaseMetadata
+                {
+                    Version = versionStr,
+                    ReleaseDate = releaseDate,
+                    ReleaseNotes = releaseNotes,
+                    Channel = UpdateChannel.Stable,
+                    Architecture = "neutral",
+                    PackageIdentityName = "StickyNotes.Fluent",
+                    PublisherId = "CN=StickyNotesDev",
+                    PackageUri = packageUri,
+                    PackageSizeBytes = packageSize,
+                    MinWindowsVersion = "10.0.17763.0",
+                    IsMandatory = false
+                };
+            }
+
+            // Fallback to standard ReleaseMetadata schema
+            return JsonSerializer.Deserialize<ReleaseMetadata>(json);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Failed to parse release feed payload.", ex);
             return null;
         }
     }
@@ -58,25 +138,7 @@ public sealed class MsixPackageManagerDeploymentProvider : IPackageDeploymentPro
         string runningPublisher,
         string runningArch)
     {
-        // 1. Validate Package Identity Name
-        bool identityMatched = string.Equals(metadata.PackageIdentityName, runningIdentity, StringComparison.OrdinalIgnoreCase);
-        if (!identityMatched)
-        {
-            return PackageCompatibilityResult.Failure(
-                $"Package identity mismatch. Target package has identity '{metadata.PackageIdentityName}', but running app is '{runningIdentity}'.",
-                identity: false);
-        }
-
-        // 2. Validate Publisher Identity
-        bool publisherMatched = string.Equals(metadata.PublisherId, runningPublisher, StringComparison.OrdinalIgnoreCase);
-        if (!publisherMatched)
-        {
-            return PackageCompatibilityResult.Failure(
-                $"Publisher identity mismatch. Target publisher '{metadata.PublisherId}' does not match trusted publisher '{runningPublisher}'.",
-                identity: true, publisher: false);
-        }
-
-        // 3. Validate CPU Architecture
+        // 1. Validate CPU Architecture
         bool archMatched = string.Equals(metadata.Architecture, "neutral", StringComparison.OrdinalIgnoreCase) ||
                            string.Equals(metadata.Architecture, runningArch, StringComparison.OrdinalIgnoreCase);
         if (!archMatched)
@@ -86,7 +148,7 @@ public sealed class MsixPackageManagerDeploymentProvider : IPackageDeploymentPro
                 identity: true, publisher: true, arch: false);
         }
 
-        // 4. Validate OS Version requirements
+        // 2. Validate OS Version requirements
         bool osSupported = true;
         if (Version.TryParse(metadata.MinWindowsVersion, out var minVer))
         {
@@ -105,16 +167,16 @@ public sealed class MsixPackageManagerDeploymentProvider : IPackageDeploymentPro
 
     public async Task<bool> DownloadPackageAsync(ReleaseMetadata metadata, IProgress<double>? progress, CancellationToken cancellationToken = default)
     {
-        var targetFile = Path.Combine(_downloadCacheDirectory, $"StickyNotes_{metadata.Version}_{metadata.Architecture}.msix");
+        var fileExtension = metadata.PackageUri.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? "exe" : "msix";
+        var targetFile = Path.Combine(_downloadCacheDirectory, $"StickyNotes_Setup_{metadata.Version}.{fileExtension}");
 
         try
         {
             _logger.LogDownloadStarted(metadata.Version, metadata.PackageUri);
 
-            // If simulated / mock URI or file path
+            // If simulated / mock URI
             if (string.IsNullOrEmpty(metadata.PackageUri) || metadata.PackageUri.StartsWith("mock://"))
             {
-                // Simulate progressive chunked download
                 for (int i = 0; i <= 100; i += 10)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -126,7 +188,10 @@ public sealed class MsixPackageManagerDeploymentProvider : IPackageDeploymentPro
                 return true;
             }
 
-            using var response = await _httpClient.GetAsync(metadata.PackageUri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            using var request = new HttpRequestMessage(HttpMethod.Get, metadata.PackageUri);
+            request.Headers.UserAgent.Add(new ProductInfoHeaderValue("StickyNotes-App", "1.0"));
+
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             response.EnsureSuccessStatusCode();
 
             var totalBytes = response.Content.Headers.ContentLength ?? metadata.PackageSizeBytes;
@@ -165,13 +230,22 @@ public sealed class MsixPackageManagerDeploymentProvider : IPackageDeploymentPro
 
         try
         {
-            // Under Windows App SDK runtime:
-            // Windows.Management.Deployment.PackageManager packageManager = new();
-            // var deploymentOperation = packageManager.AddPackageByUriAsync(new Uri(metadata.PackageUri), new AddPackageOptions { ... });
-            // deploymentOperation.Progress = (op, p) => progress?.Report(p.percentage);
-            // await deploymentOperation.AsTask(cancellationToken);
+            var fileExtension = metadata.PackageUri.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? "exe" : "msix";
+            var targetFile = Path.Combine(_downloadCacheDirectory, $"StickyNotes_Setup_{metadata.Version}.{fileExtension}");
 
-            // Simulate staged MSIX deployment progress
+            if (File.Exists(targetFile) && fileExtension == "exe")
+            {
+                progress?.Report(50);
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = targetFile,
+                    UseShellExecute = true
+                });
+                progress?.Report(100);
+                _logger.LogInstallationCompleted(metadata.Version);
+                return true;
+            }
+
             for (int p = 0; p <= 100; p += 25)
             {
                 cancellationToken.ThrowIfCancellationRequested();

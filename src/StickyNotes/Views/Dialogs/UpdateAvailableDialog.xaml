@@ -15,7 +15,7 @@
     <StackPanel Spacing="12" Width="420">
         <!-- Versions Information Header -->
         <TextBlock
-            Text="{x:Bind VersionSummaryText, Mode=OneTime}"
+            Text="{x:Bind VersionSummaryText, Mode=OneWay}"
             Style="{StaticResource BodyStrongTextBlockStyle}" />
 
         <TextBlock
@@ -36,7 +36,7 @@
                 <StackPanel Spacing="6">
                     <TextBlock Text="What's New:" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="SemiBold" />
                     <TextBlock
-                        Text="{x:Bind ReleaseNotesText, Mode=OneTime}"
+                        Text="{x:Bind ReleaseNotesText, Mode=OneWay}"
                         Style="{StaticResource CaptionTextBlockStyle}"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         TextWrapping="Wrap"

@@ -22,7 +22,10 @@ public sealed class AppLifecycleManager : IAppLifecycleManager
         string publisher = "CN=StickyNotesDev")
     {
         _logger = logger;
-        _currentVersion = currentVersion ?? Assembly.GetExecutingAssembly().GetName().Version ?? new Version(1, 0, 0);
+        _currentVersion = currentVersion ??
+            Assembly.GetEntryAssembly()?.GetName().Version ??
+            Assembly.GetExecutingAssembly().GetName().Version ??
+            new Version(1, 0, 0);
         _packageIdentity = packageIdentity;
         _publisher = publisher;
     }

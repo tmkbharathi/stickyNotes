@@ -31,6 +31,12 @@ public sealed class SettingsService : ISettingsService
             {
                 var json = File.ReadAllText(_settingsFilePath);
                 _cachedSettings = JsonSerializer.Deserialize<UpdateSettings>(json) ?? new UpdateSettings();
+                if (string.IsNullOrWhiteSpace(_cachedSettings.UpdateFeedUrlTemplate) ||
+                    _cachedSettings.UpdateFeedUrlTemplate.Contains("updates.stickynotes.fluent"))
+                {
+                    _cachedSettings.UpdateFeedUrlTemplate = "https://api.github.com/repos/tmkbharathi/stickyNotes/releases/latest";
+                    File.WriteAllText(_settingsFilePath, JsonSerializer.Serialize(_cachedSettings, JsonOptions));
+                }
             }
             else
             {
