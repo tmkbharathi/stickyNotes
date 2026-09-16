@@ -37,11 +37,14 @@ jobs:
           $csprojPath = "src/StickyNotes/StickyNotes.csproj"
           $csprojContent = Get-Content $csprojPath -Raw
           $csprojContent = $csprojContent -replace '<Version>[^<]+</Version>', "<Version>$version</Version>"
+          $csprojContent = $csprojContent -replace '<AssemblyVersion>[^<]+</AssemblyVersion>', "<AssemblyVersion>$version.0</AssemblyVersion>"
+          $csprojContent = $csprojContent -replace '<FileVersion>[^<]+</FileVersion>', "<FileVersion>$version.0</FileVersion>"
           Set-Content $csprojPath $csprojContent
 
           # 2. Update installer.iss
           $issPath = "installer.iss"
           $issContent = Get-Content $issPath -Raw
+          $issContent = $issContent -replace '#define MyAppVersion "[^"]+"', "#define MyAppVersion ""$version"""
           $issContent = $issContent -replace 'AppVersion=[^\r\n]+', "AppVersion=$version"
           Set-Content $issPath $issContent
 
@@ -104,6 +107,7 @@ jobs:
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
+          generate_release_notes: true
           files: release-artifact/StickyNotes-setup.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
