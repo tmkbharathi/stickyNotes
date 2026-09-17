@@ -121,7 +121,7 @@ public static class WindowPlacementHelper
                 var pos = appWindow.Position;
                 var size = appWindow.Size;
 
-                if (size.Width > minWidth && size.Height > minHeight)
+                if (size.Width >= minWidth && size.Height >= minHeight)
                 {
                     lastNormalX = pos.X;
                     lastNormalY = pos.Y;
@@ -144,7 +144,7 @@ public static class WindowPlacementHelper
             {
                 var pos = appWindow.Position;
                 var size = appWindow.Size;
-                if (size.Width > minWidth && size.Height > minHeight)
+                if (size.Width >= minWidth && size.Height >= minHeight)
                 {
                     onGeometryChanged(pos.X, pos.Y, size.Width, size.Height, false);
                 }

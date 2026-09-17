@@ -94,4 +94,32 @@ public class NoteModelTests
         Assert.True(desc.IsDescription);
         Assert.False(desc.IsSnippet);
     }
+
+    [Fact]
+    public void NoteModel_TitleAndContentDeletion_ReflectsInDisplayTitleAndClone()
+    {
+        var note = new NoteModel
+        {
+            Title = "My Title",
+            Content = "First line of description",
+            HasTitle = true,
+            HasContent = true
+        };
+
+        Assert.Equal("My Title", note.DisplayTitle);
+
+        // Delete title: should fall back to Content for display
+        note.HasTitle = false;
+        Assert.Equal("First line of description", note.DisplayTitle);
+
+        // Delete content as well: should fall back to snippet or Untitled Note
+        note.HasContent = false;
+        note.Snippets.Add(new SnippetBoxModel { Content = "npm run dev" });
+        Assert.Equal("npm run dev", note.DisplayTitle);
+
+        // Verify cloning preserves deleted state
+        var clone = note.Clone();
+        Assert.False(clone.HasTitle);
+        Assert.False(clone.HasContent);
+    }
 }

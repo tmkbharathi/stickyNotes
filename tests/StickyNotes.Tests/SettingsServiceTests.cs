@@ -25,6 +25,9 @@ public class SettingsServiceTests : IDisposable
 
         Assert.NotNull(settings);
         Assert.True(settings.AutoCheckUpdates);
+        Assert.True(settings.AutoDownloadUpdates);
+        Assert.True(settings.AutoInstallWhenSafe);
+        Assert.True(settings.StartWithWindows);
         Assert.Equal(UpdateChannel.Stable, settings.Channel);
         Assert.False(settings.HasInitializedStartup);
     }

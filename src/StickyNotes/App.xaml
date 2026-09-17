@@ -43,6 +43,14 @@
             <SolidColorBrush x:Key="SnippetBoxBgBrush" Color="#0A0C10" Opacity="0.65" />
             <SolidColorBrush x:Key="SnippetBoxBorderBrush" Color="#FFFFFF" Opacity="0.1" />
 
+            <!-- Seamless focus brushes: Eliminate unwanted orange underline and rectangular focus background -->
+            <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="Transparent" />
+            <SolidColorBrush x:Key="PasswordBoxBorderBrushFocused" Color="Transparent" />
+            <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="Transparent" />
+            <SolidColorBrush x:Key="PasswordBoxBackgroundFocused" Color="Transparent" />
+            <Thickness x:Key="TextControlBorderThemeThicknessFocused">0</Thickness>
+            <Thickness x:Key="PasswordBoxBorderThemeThicknessFocused">0</Thickness>
+
             <!-- Font Family -->
             <FontFamily x:Key="CodeFontFamily">Cascadia Code, Consolas, Courier New</FontFamily>
         </ResourceDictionary>

@@ -75,8 +75,13 @@ public sealed partial class MainWindow : Window
         if (!currentUpdateSettings.HasInitializedStartup)
         {
             _startupService.SetStartupEnabled(true);
+            currentUpdateSettings.StartWithWindows = true;
             currentUpdateSettings.HasInitializedStartup = true;
             _ = _settingsService.SaveUpdateSettingsAsync(currentUpdateSettings);
+        }
+        else if (currentUpdateSettings.StartWithWindows && !_startupService.IsStartupEnabled())
+        {
+            _startupService.SetStartupEnabled(true);
         }
 
         _updateService.StateChanged += (s, e) =>

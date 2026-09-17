@@ -17,7 +17,10 @@ public sealed class UpdateSettings
     public bool AutoDownloadUpdates { get; set; } = true;
 
     [JsonPropertyName("autoInstallWhenSafe")]
-    public bool AutoInstallWhenSafe { get; set; } = false;
+    public bool AutoInstallWhenSafe { get; set; } = true;
+
+    [JsonPropertyName("startWithWindows")]
+    public bool StartWithWindows { get; set; } = true;
 
     [JsonPropertyName("channel")]
     [JsonConverter(typeof(JsonStringEnumConverter))]

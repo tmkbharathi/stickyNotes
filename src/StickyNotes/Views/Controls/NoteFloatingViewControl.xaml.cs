@@ -34,6 +34,7 @@ public sealed partial class NoteFloatingViewControl : UserControl
     {
         if (d is NoteFloatingViewControl ctrl)
         {
+            ctrl.Note?.EnsureUnifiedBlocks();
             ctrl.Bindings.Update();
         }
     }

@@ -171,6 +171,7 @@ public sealed class MainHubViewModel : INotifyPropertyChanged, IDisposable
             AllNotes.Clear();
             foreach (var note in notes.Where(n => !n.IsDeleted))
             {
+                note.EnsureUnifiedBlocks();
                 AllNotes.Add(note);
             }
 
@@ -323,13 +324,14 @@ public sealed class MainHubViewModel : INotifyPropertyChanged, IDisposable
             Title = "Untitled Note",
             Content = "Type note text or instructions...",
             ColorTheme = "yellow",
-            Category = "Work",
+            Category = string.Empty,
             Snippets = new ObservableCollection<SnippetBoxModel>
             {
                 new() { Type = "CMD", Label = "Snippet", Content = "dotnet run" }
             }
         };
 
+        newNote.EnsureUnifiedBlocks();
         await _notePersistence.SaveNoteAsync(newNote);
         AllNotes.Insert(0, newNote);
         ActiveNote = newNote;

@@ -63,10 +63,10 @@ public sealed partial class NoteWindow : Window
             },
             defaultWidth: 340,
             defaultHeight: 480,
-            minWidth: 260,
-            minHeight: 220);
+            minWidth: 180,
+            minHeight: 90);
 
-        WindowMinSizeHelper.SetMinSize(this, minWidthDip: 260, minHeightDip: 220);
+        WindowMinSizeHelper.SetMinSize(this, minWidthDip: 180, minHeightDip: 90);
 
         if (_appWindow != null)
         {

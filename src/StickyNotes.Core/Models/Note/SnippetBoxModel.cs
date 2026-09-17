@@ -47,6 +47,7 @@ public sealed class SnippetBoxModel : INotifyPropertyChanged
                 OnPropertyChanged(nameof(IsSeparator));
                 OnPropertyChanged(nameof(IsLabel));
                 OnPropertyChanged(nameof(IsDescription));
+                OnPropertyChanged(nameof(IsTitle));
                 OnPropertyChanged(nameof(IsSnippet));
             }
         }
@@ -62,7 +63,10 @@ public sealed class SnippetBoxModel : INotifyPropertyChanged
     public bool IsDescription => string.Equals(_type, "DESC", StringComparison.OrdinalIgnoreCase) || string.Equals(_type, "DESCRIPTION", StringComparison.OrdinalIgnoreCase);
 
     [JsonIgnore]
-    public bool IsSnippet => !IsSeparator && !IsLabel && !IsDescription;
+    public bool IsTitle => string.Equals(_type, "TITLE", StringComparison.OrdinalIgnoreCase);
+
+    [JsonIgnore]
+    public bool IsSnippet => !IsSeparator && !IsLabel && !IsDescription && !IsTitle;
 
     [JsonPropertyName("label")]
     public string Label

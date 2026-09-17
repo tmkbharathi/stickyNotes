@@ -16,6 +16,8 @@ public sealed class NoteModel : INotifyPropertyChanged
     private bool _isTitleMasked = false;
     private bool _isContentMasked = false;
     private bool _isContentFirst = false;
+    private bool _hasTitle = true;
+    private bool _hasContent = true;
     private string _colorTheme = "yellow";
     private string _category = "Work";
     private bool _isPinned = true;
@@ -39,6 +41,36 @@ public sealed class NoteModel : INotifyPropertyChanged
     {
         get => _id;
         set { if (_id != value) { _id = value; OnPropertyChanged(); } }
+    }
+
+    [JsonPropertyName("hasTitle")]
+    public bool HasTitle
+    {
+        get => _hasTitle;
+        set
+        {
+            if (_hasTitle != value)
+            {
+                _hasTitle = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayTitle));
+            }
+        }
+    }
+
+    [JsonPropertyName("hasContent")]
+    public bool HasContent
+    {
+        get => _hasContent;
+        set
+        {
+            if (_hasContent != value)
+            {
+                _hasContent = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayTitle));
+            }
+        }
     }
 
     [JsonPropertyName("title")]
@@ -78,6 +110,25 @@ public sealed class NoteModel : INotifyPropertyChanged
     {
         get
         {
+            var titleSnippet = _snippets?.FirstOrDefault(s => s.IsTitle);
+            if (titleSnippet != null)
+            {
+                if (titleSnippet.IsMasked) return new string('•', string.IsNullOrWhiteSpace(titleSnippet.Content) ? 8 : Math.Min(16, Math.Max(8, titleSnippet.Content.Length)));
+                return string.IsNullOrWhiteSpace(titleSnippet.Content) ? "Untitled Note" : titleSnippet.Content;
+            }
+
+            if (!HasTitle)
+            {
+                var descSnippet = _snippets?.FirstOrDefault(s => s.IsDescription);
+                if (descSnippet != null && !string.IsNullOrWhiteSpace(descSnippet.Content))
+                    return descSnippet.Content.Length > 28 ? descSnippet.Content.Substring(0, 28) + "..." : descSnippet.Content;
+                if (HasContent && !string.IsNullOrWhiteSpace(_content))
+                    return _content.Length > 28 ? _content.Substring(0, 28) + "..." : _content;
+                var firstSnippet = _snippets?.FirstOrDefault(s => !string.IsNullOrWhiteSpace(s.Content));
+                if (firstSnippet != null)
+                    return firstSnippet.Content.Length > 28 ? firstSnippet.Content.Substring(0, 28) + "..." : firstSnippet.Content;
+                return "Untitled Note";
+            }
             if (IsTitleMasked) return new string('•', string.IsNullOrWhiteSpace(_title) ? 8 : Math.Min(16, Math.Max(8, _title.Length)));
             return string.IsNullOrWhiteSpace(_title) ? "Untitled Note" : _title;
         }
@@ -263,6 +314,8 @@ public sealed class NoteModel : INotifyPropertyChanged
             Id = Guid.NewGuid().ToString("N"),
             Title = this.Title,
             Content = this.Content,
+            HasTitle = this.HasTitle,
+            HasContent = this.HasContent,
             IsTitleMasked = this.IsTitleMasked,
             IsContentMasked = this.IsContentMasked,
             IsContentFirst = this.IsContentFirst,
@@ -280,5 +333,112 @@ public sealed class NoteModel : INotifyPropertyChanged
             ModifiedAt = DateTimeOffset.UtcNow,
             Snippets = clonedSnippets
         };
+    }
+
+    /// <summary>
+    /// Ensures Title and Description exist as modular, reorderable blocks inside Snippets collection.
+    /// </summary>
+    public void EnsureUnifiedBlocks()
+    {
+        bool hasTitleBlock = _snippets.Any(s => s.IsTitle);
+        bool hasDescBlock = _snippets.Any(s => s.IsDescription);
+
+        if (!hasTitleBlock && HasTitle)
+        {
+            var titleBlock = new SnippetBoxModel
+            {
+                Id = "title-" + Id,
+                Type = "TITLE",
+                Label = "Title",
+                Content = Title,
+                IsMasked = IsTitleMasked,
+                OrderIndex = 0
+            };
+
+            if (IsContentFirst && hasDescBlock)
+            {
+                var descIdx = _snippets.IndexOf(_snippets.First(s => s.IsDescription));
+                _snippets.Insert(Math.Min(_snippets.Count, descIdx + 1), titleBlock);
+            }
+            else
+            {
+                _snippets.Insert(0, titleBlock);
+            }
+        }
+
+        if (!hasDescBlock && HasContent && (!string.IsNullOrEmpty(Content) || _snippets.Count <= 1))
+        {
+            var descBlock = new SnippetBoxModel
+            {
+                Id = "desc-" + Id,
+                Type = "DESC",
+                Label = "Description",
+                Content = Content,
+                IsMasked = IsContentMasked,
+                OrderIndex = 1
+            };
+
+            if (IsContentFirst)
+            {
+                _snippets.Insert(0, descBlock);
+            }
+            else
+            {
+                var titleBlock = _snippets.FirstOrDefault(s => s.IsTitle);
+                if (titleBlock != null)
+                {
+                    var titleIdx = _snippets.IndexOf(titleBlock);
+                    _snippets.Insert(Math.Min(_snippets.Count, titleIdx + 1), descBlock);
+                }
+                else
+                {
+                    _snippets.Insert(0, descBlock);
+                }
+            }
+        }
+
+        for (int i = 0; i < _snippets.Count; i++)
+        {
+            _snippets[i].OrderIndex = i;
+        }
+    }
+
+    /// <summary>
+    /// Synchronizes primary Title and Content properties from the blocks collection.
+    /// </summary>
+    public void SyncFromBlocks()
+    {
+        var titleBlock = _snippets.FirstOrDefault(s => s.IsTitle);
+        if (titleBlock != null)
+        {
+            _title = titleBlock.Content;
+            _isTitleMasked = titleBlock.IsMasked;
+            _hasTitle = true;
+        }
+        else
+        {
+            _hasTitle = false;
+        }
+
+        var descBlock = _snippets.FirstOrDefault(s => s.IsDescription);
+        if (descBlock != null)
+        {
+            _content = descBlock.Content;
+            _isContentMasked = descBlock.IsMasked;
+            _hasContent = true;
+        }
+        else
+        {
+            _hasContent = false;
+        }
+
+        OnPropertyChanged(nameof(Title));
+        OnPropertyChanged(nameof(Content));
+        OnPropertyChanged(nameof(HasTitle));
+        OnPropertyChanged(nameof(HasContent));
+        OnPropertyChanged(nameof(IsTitleMasked));
+        OnPropertyChanged(nameof(IsContentMasked));
+        OnPropertyChanged(nameof(DisplayTitle));
+        OnPropertyChanged(nameof(DisplayContent));
     }
 }

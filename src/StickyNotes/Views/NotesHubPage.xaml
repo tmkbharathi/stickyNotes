@@ -169,61 +169,66 @@
                                         BorderThickness="1"
                                         CornerRadius="8"
                                         Padding="12">
-                                        <Grid RowDefinitions="Auto,*,Auto">
-                                            <!-- Card Header: Display Title, Pin, Copy Note -->
-                                            <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,6">
-                                                <TextBlock
-                                                    Grid.Column="0"
-                                                    Text="{x:Bind DisplayTitle, Mode=OneWay}"
-                                                    FontWeight="Bold"
-                                                    FontSize="13"
-                                                    Foreground="White"
-                                                    TextTrimming="CharacterEllipsis"
-                                                    VerticalAlignment="Center" />
+                                        <Grid RowDefinitions="Auto,*">
+                                            <!-- Card Action Buttons -->
+                                            <Grid Grid.Row="0" Margin="0,0,0,2">
+                                                <StackPanel
+                                                    Orientation="Horizontal"
+                                                    HorizontalAlignment="Right"
+                                                    VerticalAlignment="Center"
+                                                    Spacing="2">
+                                                    <Button
+                                                        Click="OnCardPinClick"
+                                                        Tag="{x:Bind}"
+                                                        Width="24"
+                                                        Height="24"
+                                                        Padding="0"
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        ToolTipService.ToolTip="Pin Note">
+                                                        <FontIcon Glyph="&#xE718;" FontSize="11" Foreground="{x:Bind ColorTheme, Mode=OneWay, Converter={StaticResource NoteAccentConv}}" />
+                                                    </Button>
 
-                                                <Button
-                                                    Grid.Column="1"
-                                                    Click="OnCardPinClick"
-                                                    Tag="{x:Bind}"
-                                                    Width="24"
-                                                    Height="24"
-                                                    Padding="0"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    ToolTipService.ToolTip="Pin Note">
-                                                    <FontIcon Glyph="&#xE718;" FontSize="11" Foreground="{x:Bind ColorTheme, Mode=OneWay, Converter={StaticResource NoteAccentConv}}" />
-                                                </Button>
-
-                                                <Button
-                                                    Grid.Column="2"
-                                                    Click="OnCardCopyAllClick"
-                                                    Tag="{x:Bind}"
-                                                    Width="24"
-                                                    Height="24"
-                                                    Padding="0"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    ToolTipService.ToolTip="Copy entire note">
-                                                    <FontIcon Glyph="&#xE8C8;" FontSize="11" Foreground="#CCCCCC" />
-                                                </Button>
+                                                    <Button
+                                                        Click="OnCardCopyAllClick"
+                                                        Tag="{x:Bind}"
+                                                        Width="24"
+                                                        Height="24"
+                                                        Padding="0"
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        ToolTipService.ToolTip="Copy entire note">
+                                                        <FontIcon Glyph="&#xE8C8;" FontSize="11" Foreground="#CCCCCC" />
+                                                    </Button>
+                                                </StackPanel>
                                             </Grid>
 
-                                            <!-- Content Preview Text -->
-                                            <TextBlock
-                                                Grid.Row="1"
-                                                Text="{x:Bind DisplayContent, Mode=OneWay}"
-                                                FontSize="11.5"
-                                                Foreground="#DDDDDD"
-                                                TextWrapping="Wrap"
-                                                MaxLines="2"
-                                                TextTrimming="CharacterEllipsis"
-                                                Margin="0,0,0,6" />
-
-                                            <!-- Embedded Blocks List -->
-                                            <ItemsControl Grid.Row="2" ItemsSource="{x:Bind Snippets, Mode=OneWay}">
+                                            <!-- Unified Sequential Blocks List -->
+                                            <ItemsControl Grid.Row="1" ItemsSource="{x:Bind Snippets, Mode=OneWay}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate x:DataType="models:SnippetBoxModel">
-                                                        <Grid Visibility="{x:Bind IsMasked, Mode=OneWay, Converter={StaticResource BoolToVisConv}, ConverterParameter='Invert'}">
+                                                        <Grid Margin="0,0,0,4">
+                                                            <!-- Title Block -->
+                                                            <TextBlock
+                                                                Text="{x:Bind DisplayContent, Mode=OneWay}"
+                                                                FontWeight="Bold"
+                                                                FontSize="13"
+                                                                Foreground="White"
+                                                                TextTrimming="CharacterEllipsis"
+                                                                Margin="0,0,0,4"
+                                                                Visibility="{x:Bind IsTitle, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" />
+
+                                                            <!-- Description Block -->
+                                                            <TextBlock
+                                                                Text="{x:Bind DisplayContent, Mode=OneWay}"
+                                                                FontSize="11.5"
+                                                                Foreground="#DDDDDD"
+                                                                TextWrapping="Wrap"
+                                                                MaxLines="3"
+                                                                TextTrimming="CharacterEllipsis"
+                                                                Margin="0,0,0,4"
+                                                                Visibility="{x:Bind IsDescription, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" />
+
                                                             <!-- Separator -->
                                                             <Border
                                                                 Height="1"
@@ -233,7 +238,7 @@
 
                                                             <!-- Label -->
                                                             <TextBlock
-                                                                Text="{x:Bind Content, Mode=OneWay}"
+                                                                Text="{x:Bind DisplayContent, Mode=OneWay}"
                                                                 FontWeight="SemiBold"
                                                                 FontSize="11.5"
                                                                 Foreground="White"
@@ -241,19 +246,9 @@
                                                                 Margin="0,1,0,2"
                                                                 Visibility="{x:Bind IsLabel, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" />
 
-                                                            <!-- Description -->
-                                                            <TextBlock
-                                                                Text="{x:Bind Content, Mode=OneWay}"
-                                                                FontSize="11"
-                                                                Foreground="#CCCCCC"
-                                                                TextTrimming="CharacterEllipsis"
-                                                                MaxLines="2"
-                                                                Margin="0,1,0,3"
-                                                                Visibility="{x:Bind IsDescription, Mode=OneWay, Converter={StaticResource BoolToVisConv}}" />
-
                                                             <!-- Snippet Box -->
                                                             <Border
-                                                                Margin="0,0,0,4"
+                                                                Margin="0,0,0,2"
                                                                 Background="{StaticResource SnippetBoxBgBrush}"
                                                                 BorderBrush="{StaticResource SnippetBoxBorderBrush}"
                                                                 BorderThickness="1"

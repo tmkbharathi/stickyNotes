@@ -108,12 +108,34 @@ public sealed class SettingsViewModel : INotifyPropertyChanged, IDisposable
 
     public bool StartWithWindows
     {
-        get => _startupService.IsStartupEnabled();
+        get
+        {
+            var s = _settingsService.GetUpdateSettings();
+            if (!s.HasInitializedStartup)
+            {
+                _startupService.SetStartupEnabled(true);
+                s.StartWithWindows = true;
+                s.HasInitializedStartup = true;
+                _ = _settingsService.SaveUpdateSettingsAsync(s);
+                return true;
+            }
+
+            if (s.StartWithWindows && !_startupService.IsStartupEnabled())
+            {
+                _startupService.SetStartupEnabled(true);
+            }
+
+            return s.StartWithWindows;
+        }
         set
         {
-            if (_startupService.IsStartupEnabled() != value)
+            var s = _settingsService.GetUpdateSettings();
+            if (s.StartWithWindows != value || _startupService.IsStartupEnabled() != value)
             {
                 _startupService.SetStartupEnabled(value);
+                s.StartWithWindows = value;
+                s.HasInitializedStartup = true;
+                _ = _settingsService.SaveUpdateSettingsAsync(s);
                 OnPropertyChanged();
             }
         }
