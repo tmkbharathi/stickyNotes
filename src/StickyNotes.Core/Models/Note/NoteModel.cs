@@ -220,15 +220,44 @@ public sealed class NoteModel : INotifyPropertyChanged
     public bool IsPinned
     {
         get => _isPinned;
-        set { if (_isPinned != value) { _isPinned = value; OnPropertyChanged(); } }
+        set
+        {
+            if (_isPinned != value)
+            {
+                _isPinned = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(PinGlyph));
+                OnPropertyChanged(nameof(PinToolTip));
+                OnPropertyChanged(nameof(PinOpacity));
+            }
+        }
     }
 
     [JsonPropertyName("isAlwaysOnTop")]
     public bool IsAlwaysOnTop
     {
         get => _isAlwaysOnTop;
-        set { if (_isAlwaysOnTop != value) { _isAlwaysOnTop = value; OnPropertyChanged(); } }
+        set
+        {
+            if (_isAlwaysOnTop != value)
+            {
+                _isAlwaysOnTop = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(PinGlyph));
+                OnPropertyChanged(nameof(PinToolTip));
+                OnPropertyChanged(nameof(PinOpacity));
+            }
+        }
     }
+
+    [JsonIgnore]
+    public string PinGlyph => (IsPinned || IsAlwaysOnTop) ? "\uE840" : "\uE718";
+
+    [JsonIgnore]
+    public string PinToolTip => (IsPinned || IsAlwaysOnTop) ? "Unpin (Always on Top active)" : "Pin (Always on Top)";
+
+    [JsonIgnore]
+    public double PinOpacity => (IsPinned || IsAlwaysOnTop) ? 1.0 : 0.45;
 
     [JsonPropertyName("isDeleted")]
     public bool IsDeleted

@@ -240,7 +240,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="20">
                                 <HyperlinkButton NavigateUri="https://github.com/tmkbharathi/stickyNotes" Padding="0">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE8A7;" FontSize="13" />
+                                        <FontIcon Glyph="&#xE943;" FontSize="13" />
                                         <TextBlock Text="GitHub Repository" FontSize="12" />
                                     </StackPanel>
                                 </HyperlinkButton>

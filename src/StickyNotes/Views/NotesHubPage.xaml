@@ -93,6 +93,48 @@
                 <Grid Grid.Column="0" Background="#1B1B1B" BorderBrush="#12FFFFFF" BorderThickness="0,0,1,0" Padding="10,12">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel Spacing="3">
+                            <!-- Primary Category Filters -->
+                            <Button Click="OnFilterNavClick" Tag="all" Style="{StaticResource SidebarNavButtonStyle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon Glyph="&#xE8C0;" FontSize="12" Foreground="#CCCCCC" Margin="0,0,10,0" />
+                                    <TextBlock Grid.Column="1" Text="All Notes" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.AllCount, Mode=OneWay}" FontSize="11" Foreground="#777777" VerticalAlignment="Center" />
+                                </Grid>
+                            </Button>
+
+                            <Button Click="OnFilterNavClick" Tag="pinned" Style="{StaticResource SidebarNavButtonStyle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon Glyph="&#xE718;" FontSize="12" Foreground="#CE93D8" Margin="0,0,10,0" />
+                                    <TextBlock Grid.Column="1" Text="Pinned" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.PinnedCount, Mode=OneWay}" FontSize="11" Foreground="#777777" VerticalAlignment="Center" />
+                                </Grid>
+                            </Button>
+
+                            <Button Click="OnFilterNavClick" Tag="trash" Style="{StaticResource SidebarNavButtonStyle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon Glyph="&#xE74D;" FontSize="12" Foreground="#FF8888" Margin="0,0,10,0" />
+                                    <TextBlock Grid.Column="1" Text="Trash" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.TrashCount, Mode=OneWay}" FontSize="11" Foreground="#777777" VerticalAlignment="Center" />
+                                </Grid>
+                            </Button>
+
+                            <Border Height="1" Background="#15FFFFFF" Margin="6,8,6,8" />
+
                             <!-- COLORS SECTION -->
                             <TextBlock Text="COLORS" FontSize="10" FontWeight="Bold" Foreground="#666666" Margin="6,2,0,6" />
                             <StackPanel Orientation="Horizontal" Spacing="8" Margin="6,2,0,0">
@@ -185,8 +227,8 @@
                                                         Padding="0"
                                                         Background="Transparent"
                                                         BorderThickness="0"
-                                                        ToolTipService.ToolTip="Pin Note">
-                                                        <FontIcon Glyph="&#xE718;" FontSize="11" Foreground="{x:Bind ColorTheme, Mode=OneWay, Converter={StaticResource NoteAccentConv}}" />
+                                                        ToolTipService.ToolTip="{x:Bind PinToolTip, Mode=OneWay}">
+                                                        <FontIcon Glyph="{x:Bind PinGlyph, Mode=OneWay}" FontSize="12" Foreground="{x:Bind ColorTheme, Mode=OneWay, Converter={StaticResource NoteAccentConv}}" Opacity="{x:Bind PinOpacity, Mode=OneWay}" />
                                                     </Button>
 
                                                     <Button

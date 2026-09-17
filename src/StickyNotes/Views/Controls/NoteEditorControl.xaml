@@ -107,8 +107,8 @@
 
             <!-- Left: Pin / Always on top -->
             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                <Button Click="OnTogglePinClick" Width="26" Height="26" Padding="0" Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="Pin Note">
-                    <FontIcon Glyph="&#xE718;" FontSize="11" Foreground="{x:Bind Note.ColorTheme, Mode=OneWay, Converter={StaticResource NoteAccentConv}}" />
+                <Button Click="OnTogglePinClick" Width="26" Height="26" Padding="0" Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="{x:Bind Note.PinToolTip, Mode=OneWay}">
+                    <FontIcon Glyph="{x:Bind Note.PinGlyph, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Note.ColorTheme, Mode=OneWay, Converter={StaticResource NoteAccentConv}}" Opacity="{x:Bind Note.PinOpacity, Mode=OneWay}" />
                 </Button>
             </StackPanel>
 
@@ -196,7 +196,7 @@
                     <MenuFlyoutItem Text="Add title" Click="OnAddTitleClick"
                                     Visibility="{x:Bind Note.HasTitle, Mode=OneWay, Converter={StaticResource BoolToVisConv}, ConverterParameter='Invert'}">
                         <MenuFlyoutItem.Icon>
-                            <FontIcon Glyph="&#xE8EC;" />
+                            <FontIcon Glyph="&#xE8D2;" />
                         </MenuFlyoutItem.Icon>
                     </MenuFlyoutItem>
                     <MenuFlyoutItem Text="Add description" Click="OnAddDescriptionClick"
@@ -220,23 +220,7 @@
                             <FontIcon Glyph="&#xE765;" />
                         </MenuFlyoutItem.Icon>
                     </MenuFlyoutItem>
-                <MenuFlyoutSeparator />
-                <MenuFlyoutItem Text="Add copyable box" Click="OnAddSnippetBoxClick">
-                    <MenuFlyoutItem.Icon>
-                        <FontIcon Glyph="&#xE710;" />
-                    </MenuFlyoutItem.Icon>
-                </MenuFlyoutItem>
-                <MenuFlyoutItem Text="Add label" Click="OnAddLabelBlockClick">
-                    <MenuFlyoutItem.Icon>
-                        <FontIcon Glyph="&#xE8EC;" />
-                    </MenuFlyoutItem.Icon>
-                </MenuFlyoutItem>
-                <MenuFlyoutItem Text="Add separator" Click="OnAddSeparatorBlockClick">
-                    <MenuFlyoutItem.Icon>
-                        <FontIcon Glyph="&#xE765;" />
-                    </MenuFlyoutItem.Icon>
-                </MenuFlyoutItem>
-            </MenuFlyout>
+                </MenuFlyout>
         </ScrollViewer.ContextFlyout>
         <StackPanel Spacing="4" VerticalAlignment="Top">
             <!-- Empty Note Prompt (shown if note has no items) -->

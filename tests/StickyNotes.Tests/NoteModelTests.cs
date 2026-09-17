@@ -122,4 +122,35 @@ public class NoteModelTests
         Assert.False(clone.HasTitle);
         Assert.False(clone.HasContent);
     }
+
+    [Fact]
+    public void NoteModel_AlwaysOnTopAndPin_DynamicGlyphAndOpacity()
+    {
+        var note = new NoteModel
+        {
+            IsPinned = false,
+            IsAlwaysOnTop = false
+        };
+
+        // Unpinned: outline pushpin, lower opacity
+        Assert.Equal("\uE718", note.PinGlyph);
+        Assert.Equal("Pin (Always on Top)", note.PinToolTip);
+        Assert.Equal(0.45, note.PinOpacity);
+
+        // Pin note: solid filled pushpin, full opacity
+        note.IsPinned = true;
+        Assert.Equal("\uE840", note.PinGlyph);
+        Assert.Equal("Unpin (Always on Top active)", note.PinToolTip);
+        Assert.Equal(1.0, note.PinOpacity);
+
+        // Unpin
+        note.IsPinned = false;
+        Assert.Equal("\uE718", note.PinGlyph);
+        Assert.Equal(0.45, note.PinOpacity);
+
+        // Always on top active
+        note.IsAlwaysOnTop = true;
+        Assert.Equal("\uE840", note.PinGlyph);
+        Assert.Equal(1.0, note.PinOpacity);
+    }
 }

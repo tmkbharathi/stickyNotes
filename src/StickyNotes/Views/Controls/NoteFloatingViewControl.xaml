@@ -13,7 +13,6 @@
         <converters:NoteBackgroundConverter x:Key="NoteBgConv" />
         <converters:NoteHeaderConverter x:Key="NoteHdrConv" />
         <converters:NoteAccentConverter x:Key="NoteAccentConv" />
-        <converters:BoolToIntConverter x:Key="BoolToIntConv" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisConv" />
     </UserControl.Resources>
 
@@ -47,8 +46,8 @@
                 Padding="0"
                 Background="Transparent"
                 BorderThickness="0"
-                ToolTipService.ToolTip="Pin (Always on Top)">
-                <FontIcon Glyph="&#xE718;" FontSize="11" Foreground="{x:Bind Note.ColorTheme, Mode=OneWay, Converter={StaticResource NoteAccentConv}}" />
+                ToolTipService.ToolTip="{x:Bind Note.PinToolTip, Mode=OneWay}">
+                <FontIcon Glyph="{x:Bind Note.PinGlyph, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Note.ColorTheme, Mode=OneWay, Converter={StaticResource NoteAccentConv}}" Opacity="{x:Bind Note.PinOpacity, Mode=OneWay}" />
             </Button>
 
             <!-- Right: Minimize, Close -->
