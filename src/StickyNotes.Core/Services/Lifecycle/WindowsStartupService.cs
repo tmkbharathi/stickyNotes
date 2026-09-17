@@ -53,10 +53,10 @@ public sealed class WindowsStartupService : IStartupService
 
         try
         {
-            using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, writable: true);
+            using var key = Registry.CurrentUser.CreateSubKey(RunKeyPath, writable: true);
             if (key == null)
             {
-                _logger?.LogError($"Failed to open registry key: {RunKeyPath}");
+                _logger?.LogError($"Failed to open or create registry key: {RunKeyPath}");
                 return false;
             }
 
