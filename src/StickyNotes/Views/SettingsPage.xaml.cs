@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using StickyNotes.ViewModels;
@@ -38,7 +39,8 @@ public sealed partial class SettingsPage : Page
         }
         else
         {
-            this.Frame?.Navigate(typeof(NotesHubPage));
+            var hubVm = App.Services.GetService<MainHubViewModel>();
+            this.Frame?.Navigate(typeof(NotesHubPage), hubVm);
         }
     }
 }

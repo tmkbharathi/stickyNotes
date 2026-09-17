@@ -43,38 +43,48 @@ public sealed class SettingsViewModel : INotifyPropertyChanged, IDisposable
 
     private void OnUpdateStateChanged(object? sender, UpdateStateChangedEventArgs e)
     {
-        if (App.CurrentAppSynchronizationContext != null)
-        {
-            App.CurrentAppSynchronizationContext.Post(_ =>
-            {
-                OnPropertyChanged(nameof(StatusText));
-                OnPropertyChanged(nameof(FormattedLastCheckedText));
-            }, null);
-        }
-        else
+        void Notify()
         {
             OnPropertyChanged(nameof(StatusText));
             OnPropertyChanged(nameof(FormattedLastCheckedText));
+            OnPropertyChanged(nameof(IsChecking));
+            OnPropertyChanged(nameof(IsDownloading));
+            OnPropertyChanged(nameof(DownloadProgressPercentage));
+        }
+
+        if (App.CurrentAppSynchronizationContext != null)
+        {
+            App.CurrentAppSynchronizationContext.Post(_ => Notify(), null);
+        }
+        else
+        {
+            Notify();
         }
     }
 
     private void OnDownloadProgressChanged(object? sender, double progress)
     {
+        void Notify()
+        {
+            OnPropertyChanged(nameof(StatusText));
+            OnPropertyChanged(nameof(DownloadProgressPercentage));
+        }
+
         if (App.CurrentAppSynchronizationContext != null)
         {
-            App.CurrentAppSynchronizationContext.Post(_ =>
-            {
-                OnPropertyChanged(nameof(StatusText));
-            }, null);
+            App.CurrentAppSynchronizationContext.Post(_ => Notify(), null);
         }
         else
         {
-            OnPropertyChanged(nameof(StatusText));
+            Notify();
         }
     }
 
     public string CurrentVersion => _updateService.GetCurrentVersion().ToString();
     public string FormattedVersion => $"Version {CurrentVersion}";
+    public bool IsChecking => _updateService.CurrentState == UpdateState.Checking;
+    public bool IsDownloading => _updateService.CurrentState == UpdateState.Downloading;
+    public double DownloadProgressPercentage => _updateService.DownloadProgress;
     public string StatusText => _updateService.CurrentState switch
     {
         UpdateState.UpToDate => "You're up to date",

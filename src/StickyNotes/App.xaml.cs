@@ -14,6 +14,7 @@ public partial class App : Application
 
     public App()
     {
+        this.RequestedTheme = ApplicationTheme.Dark;
         this.InitializeComponent();
 
         this.UnhandledException += (s, e) =>
